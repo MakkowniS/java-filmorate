@@ -52,6 +52,7 @@ public class UserController {
         // Проверка на наличие имени для отображения
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
+            log.debug("Name не обнаружен. Использование Login для Name: {}", user.getName());
         }
 
         users.put(user.getId(), user);
