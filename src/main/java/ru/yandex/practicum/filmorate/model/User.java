@@ -13,6 +13,5 @@ public class User {
     private String email;
     private String login;
     private String name;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate birthday;
 }
