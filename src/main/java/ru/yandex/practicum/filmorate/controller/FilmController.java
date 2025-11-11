@@ -10,9 +10,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/films")
 public class FilmController {
 
-    private Map<Integer, Film> films = new HashMap<>();
+    private final Map<Integer, Film> films = new HashMap<>();
 
     @GetMapping
     public Collection<Film> getFilms() {
@@ -41,19 +42,29 @@ public class FilmController {
         if (newFilm.getId() == null){
             throw new ValidationException("ID не может быть пустым");
         }
+
         Film oldFilm = films.get(newFilm.getId());
         if (oldFilm == null){
             throw new ValidationException("Фильма с ID: " + newFilm.getId() + " не найдено");
         }
-        oldFilm.setName(newFilm.getName());
-        oldFilm.setDescription(newFilm.getDescription());
-        oldFilm.setReleaseDate(newFilm.getReleaseDate());
-        oldFilm.setDuration(newFilm.getDuration());
+
+        if (newFilm.getName() != null && !newFilm.getName().isBlank()){
+            oldFilm.setName(newFilm.getName());
+        }
+        if (newFilm.getDescription() != null && newFilm.getDescription().length() < 200){
+            oldFilm.setDescription(newFilm.getDescription());
+        }
+        if (newFilm.getReleaseDate() != null && newFilm.getReleaseDate().isAfter(LocalDate.of(1895,12,28))){
+            oldFilm.setReleaseDate(newFilm.getReleaseDate());
+        }
+        if (newFilm.getDuration() != null && newFilm.getDuration().toMinutes() > 0){
+            oldFilm.setDuration(newFilm.getDuration());
+        }
 
         return oldFilm;
     }
 
-    private int getNextId(){
+    private Integer getNextId(){
         int currentId = films.keySet().stream()
                 .mapToInt(id -> id)
                 .max()
