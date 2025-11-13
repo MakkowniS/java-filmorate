@@ -1,14 +1,14 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.validation.Marker;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -18,14 +18,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 public class UserControllerTest {
 
-    private UserController userController;
+    @Autowired
     private Validator validator;
+    private UserController userController;
     private User user;
 
     @BeforeEach
     void setup() {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        validator = factory.getValidator();
         userController = new UserController();
         User user1 = new User();
         user1.setEmail("email1@yandex.ru");
@@ -38,7 +37,7 @@ public class UserControllerTest {
     void validationUserThrowsWhenEmailIsBlank() {
         user.setEmail("");
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Marker.OnCreate.class);
         assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("email")));
     }
 
@@ -55,7 +54,7 @@ public class UserControllerTest {
         user.setEmail("usermail@ru");
         user.setLogin("");
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Marker.OnCreate.class);
         assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("login")));
     }
 
@@ -70,6 +69,30 @@ public class UserControllerTest {
     }
 
     @Test
+    void validationUserThrowsWhenLoginContainsWhitespace() {
+        user.setEmail("usermail@ru");
+        user.setLogin("user Login");
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("login")));
+    }
+
+    @Test
+    void validatiobUserThrowsWhenEmailIsNotNullButNotContainsMailCharacter() {
+        user.setId(1);
+        user.setEmail("userMail.ru");
+
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("email")));
+    }
+
+    @Test
+    void updateValidationUserThrowsWhenIdIsBlank() {
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Marker.OnUpdate.class);
+        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("id")));
+    }
+
+    @Test
     void createUserSucceedIfUserValid() {
         user.setEmail("usermail@yandex.ru");
         user.setLogin("userLogin");
@@ -77,14 +100,6 @@ public class UserControllerTest {
         User result = userController.createUser(user);
         assertNotNull(result);
         assertEquals("userLogin", result.getLogin());
-    }
-
-    @Test
-    void createUserThrowsWhenLoginContainsWhitespace() {
-        user.setEmail("usermail@ru");
-        user.setLogin("user Login");
-
-        assertThrows(ValidationException.class, () -> userController.createUser(user));
     }
 
     @Test
@@ -124,37 +139,8 @@ public class UserControllerTest {
     }
 
     @Test
-    void updateUserThrowsWhenIdIsBlank() {
-        assertThrows(ValidationException.class, () -> userController.updateUser(user));
-    }
-
-    @Test
     void updateUserThrowsWhenIdNotExists() {
         user.setId(10);
-
-        assertThrows(ValidationException.class, () -> userController.updateUser(user));
-    }
-
-    @Test
-    void updateUserThrowsWhenEmailIsNotNullButNotContainsMailCharacter() {
-        user.setId(1);
-        user.setEmail("userMail.ru");
-
-        assertThrows(ValidationException.class, () -> userController.updateUser(user));
-    }
-
-    @Test
-    void updateUserThrowsWhenLoginIsNotNullButContainsWhitespace() {
-        user.setId(1);
-        user.setLogin("lo gin");
-
-        assertThrows(ValidationException.class, () -> userController.updateUser(user));
-    }
-
-    @Test
-    void updateUserThrowsWhenBirthdayIsNotNullButAfterNow() {
-        user.setId(1);
-        user.setBirthday(LocalDate.now().plusDays(1));
 
         assertThrows(ValidationException.class, () -> userController.updateUser(user));
     }
