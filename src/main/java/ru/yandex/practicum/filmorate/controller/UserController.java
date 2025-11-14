@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +26,7 @@ public class UserController {
     }
 
     @PostMapping
-    @Validated({Marker.OnCreate.class})
-    public User createUser(@Valid @RequestBody User user) {
+    public User createUser(@Validated({Marker.OnCreate.class}) @RequestBody User user) {
         log.info("Запрос на создание нового пользователя: {}", user);
 
         // Проверка на дубль Email и Login
@@ -50,8 +49,7 @@ public class UserController {
     }
 
     @PutMapping
-    @Validated({Marker.OnUpdate.class})
-    public User updateUser(@Valid @RequestBody User newUser) {
+    public User updateUser(@Validated({Marker.OnUpdate.class}) @RequestBody User newUser) {
         log.info("Запрос на обновление пользователя. Новые данные: {}", newUser);
 
         // Поиск ID в списке

@@ -20,13 +20,13 @@ public class Film {
     @NotBlank(groups = Marker.OnCreate.class, message = "Название не может быть пустым")
     private String name;
 
-    @Size(max = 200, message = "Описание не может быть больше 200 символов")
+    @Size(groups = {Marker.OnCreate.class, Marker.OnUpdate.class}, max = 200, message = "Описание не может быть больше 200 символов")
     private String description;
 
-    @AfterFirstFilmRelease
+    @AfterFirstFilmRelease(groups = {Marker.OnCreate.class, Marker.OnUpdate.class})
     @NotNull(groups = Marker.OnCreate.class, message = "Дата релиза не может быть пустой")
     private LocalDate releaseDate;
 
-    @PositiveOrZero(message = "Продолжительность не может быть отрицательной")
+    @PositiveOrZero(groups = {Marker.OnCreate.class, Marker.OnUpdate.class}, message = "Продолжительность не может быть отрицательной")
     private Integer duration;
 }
