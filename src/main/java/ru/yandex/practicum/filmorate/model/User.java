@@ -17,15 +17,15 @@ public class User {
     private Integer id;
 
     @NotBlank(groups = Marker.OnCreate.class, message = "Поле Email не может быть пустым")
-    @Email(message = "Некорректный формат Email")
+    @Email(groups = {Marker.OnUpdate.class, Marker.OnCreate.class}, message = "Некорректный формат Email")
     private String email;
 
     @NotBlank(groups = Marker.OnCreate.class, message = "Поле Login не может быть пустым")
-    @NotContainsWhitespaces
+    @NotContainsWhitespaces(groups = {Marker.OnUpdate.class, Marker.OnCreate.class})
     private String login;
 
     private String name;
 
-    @PastOrPresent(message = "Некорректная дата рождения")
+    @PastOrPresent(groups = {Marker.OnUpdate.class, Marker.OnCreate.class}, message = "Некорректная дата рождения")
     private LocalDate birthday;
 }
