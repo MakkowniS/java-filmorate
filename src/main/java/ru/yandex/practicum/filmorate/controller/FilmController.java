@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +25,7 @@ public class FilmController {
     }
 
     @PostMapping
-    @Validated({Marker.OnCreate.class})
-    public Film createFilm(@Valid @RequestBody Film film) {
+    public Film createFilm(@Validated({Marker.OnCreate.class}) @RequestBody Film film) {
         log.info("Запрос на добавление нового фильма: {}", film);
 
         film.setId(getNextId());
@@ -40,8 +38,7 @@ public class FilmController {
     }
 
     @PutMapping
-    @Validated({Marker.OnUpdate.class})
-    public Film updateFilm(@Valid @RequestBody Film newFilm) {
+    public Film updateFilm(@Validated({Marker.OnUpdate.class}) @RequestBody Film newFilm) {
         log.info("Запрос на обновление данных фильма:{}", newFilm);
 
         // Проверка содержания ID в списке
@@ -52,11 +49,13 @@ public class FilmController {
         }
 
         // Проверка наличия Name в запросе
-        if (newFilm.getName() != null && !newFilm.getName().isBlank()) {
-            oldFilm.setName(newFilm.getName());
-            log.debug("Название обновлено. Name:{}", newFilm.getName());
-        } else {
-            throw new ValidationException("Название не может быть пустым");
+        if (newFilm.getName() != null) {
+            if (!newFilm.getName().isBlank()) {
+                oldFilm.setName(newFilm.getName());
+                log.debug("Название обновлено. Name:{}", newFilm.getName());
+            } else { // Если передан пустой Name (" ")
+                throw new ValidationException("Название не может быть пустым");
+            }
         }
 
         // Проверка наличия Description в запросе
