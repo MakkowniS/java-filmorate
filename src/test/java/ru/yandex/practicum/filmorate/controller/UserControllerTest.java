@@ -45,7 +45,7 @@ public class UserControllerTest {
     void validationUserThrowsWhenEmailNotMailFormat() {
         user.setEmail("usermail.yandex.ru");
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Marker.OnCreate.class);
         assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("email")));
     }
 
@@ -64,7 +64,7 @@ public class UserControllerTest {
         user.setLogin("userLogin");
         user.setBirthday(LocalDate.now().plusDays(1));
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Marker.OnCreate.class);
         assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("birthday")));
     }
 
@@ -73,16 +73,16 @@ public class UserControllerTest {
         user.setEmail("usermail@ru");
         user.setLogin("user Login");
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user, Marker.OnCreate.class);
         assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("login")));
     }
 
     @Test
-    void validatiobUserThrowsWhenEmailIsNotNullButNotContainsMailCharacter() {
+    void validationUserThrowsWhenEmailIsNotNullButNotContainsMailCharacter() {
         user.setId(1);
         user.setEmail("userMail.ru");
 
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        Set<ConstraintViolation<User>> violations = validator.validate(user,  Marker.OnCreate.class);
         assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("email")));
     }
 

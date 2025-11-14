@@ -39,7 +39,7 @@ public class FilmControllerTest {
         film.setName("Star");
         film.setDescription("a".repeat(201));
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Marker.OnCreate.class);
         assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("description")));
     }
 
@@ -50,7 +50,7 @@ public class FilmControllerTest {
         film.setReleaseDate(LocalDate.of(2000, 12, 2));
         film.setDuration(-1);
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Marker.OnCreate.class);
         assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("duration")));
     }
 
@@ -75,7 +75,7 @@ public class FilmControllerTest {
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
         film.setDuration(120);
 
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film, Marker.OnCreate.class);
         assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().equals("releaseDate")));
     }
 
