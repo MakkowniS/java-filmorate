@@ -20,13 +20,12 @@ public class FilmControllerTest {
 
     @Autowired
     private Validator validator;
-
+    @Autowired
     private FilmController filmController;
     private Film film;
 
     @BeforeEach
     public void setup() {
-        filmController = new FilmController();
         Film film1 = new Film();
         film1.setName("Ok");
         film1.setReleaseDate(LocalDate.now());

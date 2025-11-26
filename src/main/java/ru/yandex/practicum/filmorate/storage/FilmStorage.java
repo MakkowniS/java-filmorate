@@ -14,11 +14,11 @@ public interface FilmStorage {
     public Collection<Film> getFilms();
 
     // Добавление фильма
-    public Film createFilm(@Validated({Marker.OnCreate.class}) @RequestBody Film film);
+    public Film createFilm(Film film);
 
     // Изменение добавленного фильма
-    public Film updateFilm(@Validated({Marker.OnUpdate.class}) @RequestBody Film newFilm);
+    public Film updateFilm(Film newFilm);
 
     // Удаление фильма
-    public Film deleteFilm(@PathVariable int id);
+    public void deleteFilm(int id);
 }

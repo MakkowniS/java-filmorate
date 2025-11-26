@@ -1,7 +1,6 @@
-package ru.yandex.practicum.filmorate.controller;
+package ru.yandex.practicum.filmorate.exception;
 
 import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,11 +13,21 @@ import ru.yandex.practicum.filmorate.model.Violation;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RestControllerAdvice("ru.yandex.practicum.filmorate.controller")
-public class ExceptionHandlingControllerAdvice {
+@RestControllerAdvice({
+        "ru.yandex.practicum.filmorate.controller",
+        "ru.yandex.practicum.filmorate.storage"
+        })
+public class ErrorHandler {
+
+    // Обработка IncorrectParameterException
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIncorrectParameter(IncorrectParameterException e){
+        return new ErrorResponse("Ошибка параметра.", e.getMessage());
+    }
 
     // Обработка исключения валидации MethodArgumentNotValidException
-    @ExceptionHandler()
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse onMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         final List<Violation> violations = e.getBindingResult().getFieldErrors().stream()

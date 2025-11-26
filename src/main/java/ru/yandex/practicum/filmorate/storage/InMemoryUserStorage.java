@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -82,7 +83,13 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void deleteUser(int id) {
-
+        if (users.containsKey(id)) {
+            users.remove(id);
+            log.debug("Пользователь с id: {} удалён.", id);
+        } else {
+            log.warn("Пользователь с id: {} не найден.", id);
+            throw new IncorrectParameterException(Integer.toString(id), "Пользователь с указанным id не найден.");
+        }
     }
 
     private void isEmailExists(User user) {

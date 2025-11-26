@@ -39,4 +39,10 @@ public class UserController {
         return inMemoryUserStorage.updateUser(newUser);
     }
 
+    @DeleteMapping("/{userId}")
+    public void deleteUser(@PathVariable int userId) {
+        log.info("Запрос на удаление пользователя: {}", userId);
+        inMemoryUserStorage.deleteUser(userId);
+    }
+
 }

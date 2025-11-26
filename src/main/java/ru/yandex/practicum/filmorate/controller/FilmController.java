@@ -5,11 +5,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.validation.Marker;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -17,71 +16,32 @@ import java.util.Map;
 @Validated
 public class FilmController {
 
-    private final Map<Integer, Film> films = new HashMap<>();
+    private final InMemoryFilmStorage inMemoryFilmStorage;
+
+    public FilmController(InMemoryFilmStorage inMemoryFilmStorage) {
+        this.inMemoryFilmStorage = inMemoryFilmStorage;
+    }
 
     @GetMapping
     public Collection<Film> getFilms() {
-        return films.values();
+        return inMemoryFilmStorage.getFilms();
     }
 
     @PostMapping
     public Film createFilm(@Validated({Marker.OnCreate.class}) @RequestBody Film film) {
         log.info("Запрос на добавление нового фильма: {}", film);
-
-        film.setId(getNextId());
-        log.debug("Валидация пройдена. ID:{} установлен", film.getId());
-
-        films.put(film.getId(), film);
-        log.info("Фильм успешно создан ID:{}, Name:{}", film.getId(), film.getName());
-
-        return film;
+        return inMemoryFilmStorage.createFilm(film);
     }
 
     @PutMapping
     public Film updateFilm(@Validated({Marker.OnUpdate.class}) @RequestBody Film newFilm) {
         log.info("Запрос на обновление данных фильма:{}", newFilm);
-
-        // Проверка содержания ID в списке
-        Film oldFilm = films.get(newFilm.getId());
-        if (oldFilm == null) {
-            log.warn("Фильм с ID:{} не найден", newFilm.getId());
-            throw new ValidationException("Фильма с ID: " + newFilm.getId() + " не найдено");
-        }
-
-        // Проверка наличия Name в запросе
-        if (newFilm.getName() != null) {
-            if (!newFilm.getName().isBlank()) {
-                oldFilm.setName(newFilm.getName());
-                log.debug("Название обновлено. Name:{}", newFilm.getName());
-            } else { // Если передан пустой Name (" ")
-                throw new ValidationException("Название не может быть пустым");
-            }
-        }
-
-        // Проверка наличия Description в запросе
-        if (newFilm.getDescription() != null) {
-            oldFilm.setDescription(newFilm.getDescription());
-            log.debug("Описание обновлено. Description:{}", newFilm.getDescription());
-        }
-
-        // Проверка наличия ReleaseDate в запросе
-        if (newFilm.getReleaseDate() != null) {
-            oldFilm.setReleaseDate(newFilm.getReleaseDate());
-            log.debug("Дата релиза обновлена. ReleaseDate:{}", newFilm.getReleaseDate());
-        }
-
-        // Проверка наличия Duration в запросе
-        if (newFilm.getDuration() != null) {
-            oldFilm.setDuration(newFilm.getDuration());
-            log.debug("Продолжительность обновлена. Duration:{}", newFilm.getDuration());
-        }
-
-        log.info("Фильм с ID:{} успешно обновлён. ", oldFilm.getId());
-        return oldFilm;
+        return  inMemoryFilmStorage.updateFilm(newFilm);
     }
 
-    private Integer getNextId() {
-        int currentId = films.keySet().stream().mapToInt(id -> id).max().orElse(0);
-        return ++currentId;
+    @DeleteMapping("/{filmId}")
+    public void deleteFilm(@PathVariable int filmId) {
+        log.info("Запрос на удаление фильма с id:{}", filmId);
+        inMemoryFilmStorage.deleteFilm(filmId);
     }
 }
