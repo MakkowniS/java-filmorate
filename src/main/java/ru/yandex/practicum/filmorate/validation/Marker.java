@@ -8,4 +8,7 @@ public interface Marker {
     interface OnUpdate {
     }
 
+    interface OnDelete {
+    }
+
 }

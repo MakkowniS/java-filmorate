@@ -20,12 +20,12 @@ public class UserControllerTest {
 
     @Autowired
     private Validator validator;
+    @Autowired
     private UserController userController;
     private User user;
 
     @BeforeEach
     void setup() {
-        userController = new UserController();
         User user1 = new User();
         user1.setEmail("email1@yandex.ru");
         user1.setLogin("login1");
