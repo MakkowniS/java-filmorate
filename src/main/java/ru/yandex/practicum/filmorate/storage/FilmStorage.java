@@ -13,6 +13,9 @@ public interface FilmStorage {
     // Получение списка фильмов
     public Collection<Film> getFilms();
 
+    // Получение фильма по id
+    public Film getFilmById(Long id);
+
     // Добавление фильма
     public Film createFilm(Film film);
 
@@ -20,5 +23,5 @@ public interface FilmStorage {
     public Film updateFilm(Film newFilm);
 
     // Удаление фильма
-    public void deleteFilm(int id);
+    public void deleteFilm(Long id);
 }

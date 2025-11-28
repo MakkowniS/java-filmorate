@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.validation.Marker;
 import ru.yandex.practicum.filmorate.validation.annotation.NotContainsWhitespaces;
 
@@ -10,8 +11,18 @@ import java.time.LocalDate;
 import java.util.HashSet;
 
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = false, of = "id")
 public class User {
+
+    public User(User otherUser){
+        this.id = otherUser.id;
+        this.email = otherUser.email;
+        this.login = otherUser.login;
+        this.name = otherUser.name;
+        this.birthday = otherUser.birthday;
+        this.friendsIds = new HashSet<>(otherUser.friendsIds);
+    }
 
     private HashSet<Long> friendsIds = new HashSet<>();
 
