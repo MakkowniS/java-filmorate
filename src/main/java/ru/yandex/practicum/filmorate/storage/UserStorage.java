@@ -8,20 +8,17 @@ import java.util.Set;
 public interface UserStorage {
 
     // Получение списка юзеров
-    public Collection<User> getUsers();
+    Collection<User> getUsers();
 
     // Получение юзера
-    public User getUser(Long userId);
-
-    // Получение списка id друзей
-    public Set<Long> getUsersFriendsIds(Long userId);
+    User getUser(Long userId);
 
     // Создание юзера
-    public User addUser(User user);
+    User addUser(User user);
 
     // Обновление юзера
-    public User updateUser(User newUser);
+    User updateUser(User newUser);
 
     // Удаление юзера
-    public void deleteUser(Long id);
+    void deleteUser(Long id);
 }
