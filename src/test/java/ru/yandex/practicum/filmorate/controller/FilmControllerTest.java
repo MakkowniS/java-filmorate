@@ -133,14 +133,14 @@ public class FilmControllerTest {
 
     @Test
     void updateFilmThrowsWhenIdNotExists() {
-        film.setId(10);
+        film.setId(10L);
 
         assertThrows(ValidationException.class, () -> filmController.updateFilm(film));
     }
 
     @Test
     void updateFilmSucceedWhenIdExistsAndFilmValidOnBoundaries() {
-        film.setId(1);
+        film.setId(1L);
         film.setName("S");
         film.setDescription("L".repeat(200));
         film.setReleaseDate(LocalDate.of(1895, 12, 28));
@@ -153,7 +153,7 @@ public class FilmControllerTest {
 
     @Test
     void updateFilmThrowsWhenNameIsNotNullButBlank() {
-        film.setId(1);
+        film.setId(1L);
         film.setName("");
 
         assertThrows(ValidationException.class, () -> filmController.updateFilm(film));

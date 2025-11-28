@@ -79,7 +79,7 @@ public class UserControllerTest {
 
     @Test
     void validationUserThrowsWhenEmailIsNotNullButNotContainsMailCharacter() {
-        user.setId(1);
+        user.setId(1L);
         user.setEmail("userMail.ru");
 
         Set<ConstraintViolation<User>> violations = validator.validate(user,  Marker.OnCreate.class);
@@ -129,7 +129,7 @@ public class UserControllerTest {
 
     @Test
     void updateUserSucceedIfUserValid() {
-        user.setId(1);
+        user.setId(1L);
         user.setEmail("newMail@yandex.ru");
         user.setLogin("newLogin");
 
@@ -140,7 +140,7 @@ public class UserControllerTest {
 
     @Test
     void updateUserThrowsWhenIdNotExists() {
-        user.setId(10);
+        user.setId(10L);
 
         assertThrows(ValidationException.class, () -> userController.updateUser(user));
     }
