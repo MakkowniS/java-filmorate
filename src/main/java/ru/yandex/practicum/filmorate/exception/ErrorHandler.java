@@ -19,6 +19,13 @@ import java.util.stream.Collectors;
         })
 public class ErrorHandler {
 
+    // Обработка NotFoundException
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFound(NotFoundException e) {
+        return new ErrorResponse("Ошибка параметра.", e.getMessage());
+    }
+
     // Обработка IncorrectParameterException
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)

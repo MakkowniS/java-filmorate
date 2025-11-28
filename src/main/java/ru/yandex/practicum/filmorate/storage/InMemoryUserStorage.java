@@ -14,11 +14,16 @@ import java.util.Map;
 @Component
 public class InMemoryUserStorage implements UserStorage {
 
-    private final Map<Integer, User> users = new HashMap<>();
+    private final Map<Long, User> users = new HashMap<>();
 
     @Override
     public Collection<User> getUsers(){
         return users.values();
+    }
+
+    @Override
+    public User getUser(Long userId) {
+        return users.get(userId);
     }
 
     @Override
@@ -82,13 +87,13 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void deleteUser(int id) {
+    public void deleteUser(Long id) {
         if (users.containsKey(id)) {
             users.remove(id);
             log.debug("Пользователь с id: {} удалён.", id);
         } else {
             log.warn("Пользователь с id: {} не найден.", id);
-            throw new IncorrectParameterException(Integer.toString(id), "Пользователь с указанным id не найден.");
+            throw new IncorrectParameterException(Long.toString(id), "Пользователь с указанным id не найден.");
         }
     }
 
@@ -110,9 +115,9 @@ public class InMemoryUserStorage implements UserStorage {
         }
     }
 
-    private Integer getNextId() {
-        int currentId = users.keySet().stream()
-                .mapToInt(id -> id)
+    private Long getNextId() {
+        long currentId = users.keySet().stream()
+                .mapToLong(id -> id)
                 .max()
                 .orElse(0);
         return ++currentId;

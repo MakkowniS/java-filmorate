@@ -9,6 +9,9 @@ public interface UserStorage {
     // Получение списка юзеров
     public Collection<User> getUsers();
 
+    // Получение юзера
+    public User getUser(Long userId);
+
     // Создание юзера
     public User createUser(User user);
 
@@ -16,5 +19,5 @@ public interface UserStorage {
     public User updateUser(User newUser);
 
     // Удаление юзера
-    public void deleteUser(int id);
+    public void deleteUser(Long id);
 }
