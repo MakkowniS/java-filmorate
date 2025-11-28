@@ -16,7 +16,7 @@ import java.util.HashSet;
 @EqualsAndHashCode(callSuper = false, of = "id")
 public class Film {
 
-    public Film(Film otherFilm){
+    public Film(Film otherFilm) {
         this.id = otherFilm.id;
         this.name = otherFilm.name;
         this.description = otherFilm.description;

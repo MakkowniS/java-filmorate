@@ -74,12 +74,12 @@ public class UserService {
     }
 
     public void deleteUserById(Long id) {
-        User user = getUserAndCheckNull(id); // Проверяем на наличие юзера с ID
+        getUserAndCheckNull(id);// Проверяем на наличие юзера с ID
         userStorage.deleteUser(id);
     }
 
-    public User addFriend(Long userId, Long friendId){
-        log.info("Добавление в друзья юзеров с ID: {} и {}", userId,friendId);
+    public User addFriend(Long userId, Long friendId) {
+        log.info("Добавление в друзья юзеров с ID: {} и {}", userId, friendId);
 
         User user = getUserAndCheckNull(userId);
         User friend = getUserAndCheckNull(friendId);
@@ -94,8 +94,8 @@ public class UserService {
         return user;
     }
 
-    public void removeFriend(Long firstUserId, Long secondUserId){
-        log.info("Удаление из друзей юзеров с ID: {} и {}",  firstUserId,secondUserId);
+    public void removeFriend(Long firstUserId, Long secondUserId) {
+        log.info("Удаление из друзей юзеров с ID: {} и {}", firstUserId, secondUserId);
 
         User firstUser = getUserAndCheckNull(firstUserId);
         User secondUser = getUserAndCheckNull(secondUserId);
@@ -109,7 +109,7 @@ public class UserService {
         log.info("Дружба удалена.");
     }
 
-    public Collection<User> getUsersFriends(Long id){
+    public Collection<User> getUsersFriends(Long id) {
         User user = getUserAndCheckNull(id);
         Set<Long> friendsIds = user.getFriendsIds();
         return friendsIds.stream()
@@ -130,7 +130,7 @@ public class UserService {
                 .map(userStorage::getUser)
                 .toList();
 
-        log .info("Найдено {} общих друзей.",  commonFriends.size());
+        log.info("Найдено {} общих друзей.", commonFriends.size());
         return commonFriends;
     }
 

@@ -81,7 +81,7 @@ public class FilmService {
         filmStorage.deleteFilm(id);
     }
 
-    public void addLike(Long userId, Long filmId) {
+    public Film addLike(Long filmId, Long userId) {
         log.info("Добавление лайка от юзера: {} фильму: {}", userId, filmId);
 
         Film film = getFilmAndCheckNull(filmId);
@@ -89,9 +89,10 @@ public class FilmService {
 
         filmStorage.updateFilm(film);
         log.info("Лайк добавлен");
+        return film;
     }
 
-    public void removeLike(Long userId, Long filmId) {
+    public void removeLike(Long filmId, Long userId) {
         log.info("Удаление лайка от юзера: {} у фильма: {}", userId, filmId);
 
         Film film = getFilmAndCheckNull(filmId);
@@ -101,10 +102,10 @@ public class FilmService {
         log.info("Лайк удалён.");
     }
 
-    public List<Film> findTop10LikedFilms() {
+    public List<Film> findTop10LikedFilms(int count) {
         return filmStorage.getFilms().stream()
                 .sorted(Comparator.comparingLong((Film f) -> f.getLikedUserIds().size()).reversed())
-                .limit(10)
+                .limit(count)
                 .toList();
     }
 

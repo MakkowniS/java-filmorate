@@ -15,7 +15,7 @@ import java.util.HashSet;
 @EqualsAndHashCode(callSuper = false, of = "id")
 public class User {
 
-    public User(User otherUser){
+    public User(User otherUser) {
         this.id = otherUser.id;
         this.email = otherUser.email;
         this.login = otherUser.login;

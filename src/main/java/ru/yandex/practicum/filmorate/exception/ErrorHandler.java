@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @RestControllerAdvice({
         "ru.yandex.practicum.filmorate.controller",
         "ru.yandex.practicum.filmorate.storage"
-        })
+})
 public class ErrorHandler {
 
     // Обработка NotFoundException
@@ -29,7 +29,7 @@ public class ErrorHandler {
     // Обработка IncorrectParameterException
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleIncorrectParameter(IncorrectParameterException e){
+    public ErrorResponse handleIncorrectParameter(IncorrectParameterException e) {
         return new ErrorResponse("Ошибка параметра.", e.getMessage());
     }
 
@@ -50,6 +50,12 @@ public class ErrorHandler {
                 .map(violation -> new Violation(violation.getPropertyPath().toString(), violation.getMessage()))
                 .collect(Collectors.toList());
         return new ValidationErrorResponse(violations);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleRuntimeException(RuntimeException e) {
+        return new ErrorResponse("Возникла внутренняя ошибка.", e.getMessage());
     }
 
 }
