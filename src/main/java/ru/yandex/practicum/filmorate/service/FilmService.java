@@ -115,12 +115,13 @@ public class FilmService {
     }
 
     private Film getFilmAndCheckNull(Long filmId) {
-        Film film = filmStorage.getFilmById(filmId);
-        if (film == null) {
-            log.warn("Указанного ID {} нет в списке фильмов.", filmId);
-            throw new NotFoundException("Указанный ID (" + filmId + ")не найден");
+        try {
+            Film film = filmStorage.getFilmById(filmId);
+            return film;
+        } catch (NullPointerException e) {
+            log.warn("Фильм с ID:{} не найден", filmId);
+            throw new NotFoundException("Фильма с ID: " + filmId + " не найдено");
         }
-        return film;
     }
 
 }

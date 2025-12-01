@@ -15,7 +15,8 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice({
         "ru.yandex.practicum.filmorate.controller",
-        "ru.yandex.practicum.filmorate.storage"
+        "ru.yandex.practicum.filmorate.storage",
+        "ru.yandex.practicum.filmorate.service"
 })
 public class ErrorHandler {
 
