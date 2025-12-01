@@ -90,8 +90,10 @@ public class FilmService {
 
     public Film addLike(Long filmId, Long userId) {
         log.info("Добавление лайка от юзера: {} фильму: {}", userId, filmId);
-
-        if (userService.getUserById(userId) == null) {
+        // Проверка существования юзера
+        try {
+            userService.getUserById(userId);
+        } catch (NullPointerException e) {
             log.warn("Юзера с id: {} не существует.", userId);
             throw new NotFoundException("Юзера с ID: " + userId + " не существует.");
         }
