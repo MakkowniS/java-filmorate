@@ -13,9 +13,11 @@ import java.util.*;
 @Service
 public class FilmService {
 
+    private final UserService userService;
     private final FilmStorage filmStorage;
 
-    public FilmService(FilmStorage filmStorage) {
+    public FilmService(UserService userService, FilmStorage filmStorage) {
+        this.userService = userService;
         this.filmStorage = filmStorage;
     }
 
@@ -89,6 +91,11 @@ public class FilmService {
     public Film addLike(Long filmId, Long userId) {
         log.info("Добавление лайка от юзера: {} фильму: {}", userId, filmId);
 
+        if (userService.getUserById(userId) == null) {
+            log.warn("Юзера с id: {} не существует.", userId);
+            throw new NotFoundException("Юзера с ID: " + userId + " не существует.");
+        }
+
         Film film = getFilmAndCheckNull(filmId);
         film.getLikedUserIds().add(userId);
 
@@ -101,7 +108,11 @@ public class FilmService {
         log.info("Удаление лайка от юзера: {} у фильма: {}", userId, filmId);
 
         Film film = getFilmAndCheckNull(filmId);
-        film.getLikedUserIds().remove(userId);
+        Set<Long> filmLikedUserIds = film.getLikedUserIds();
+        if (!filmLikedUserIds.contains(userId)) {
+            log.warn("Юзера с id: {} в списке лайков не найдено.", userId);
+            throw new NotFoundException("Юзера с ID: " + userId + " нет в списке лайков.");
+        }
 
         filmStorage.updateFilm(film);
         log.info("Лайк удалён.");
@@ -116,8 +127,7 @@ public class FilmService {
 
     private Film getFilmAndCheckNull(Long filmId) {
         try {
-            Film film = filmStorage.getFilmById(filmId);
-            return film;
+            return filmStorage.getFilmById(filmId);
         } catch (NullPointerException e) {
             log.warn("Фильм с ID:{} не найден", filmId);
             throw new NotFoundException("Фильма с ID: " + filmId + " не найдено");

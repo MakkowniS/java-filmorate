@@ -10,8 +10,11 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.validation.Marker;
 
 import java.time.LocalDate;
@@ -24,6 +27,8 @@ public class FilmControllerTest {
 
     @Autowired
     private Validator validator;
+    private UserStorage userStorage = new InMemoryUserStorage();
+    private UserService userService = new UserService(userStorage);
     private FilmStorage  filmStorage;
     private FilmService filmService;
     private FilmController filmController;
@@ -32,7 +37,7 @@ public class FilmControllerTest {
     @BeforeEach
     public void setup() {
         filmStorage = new InMemoryFilmStorage();
-        filmService = new FilmService(filmStorage);
+        filmService = new FilmService(userService, filmStorage);
         filmController = new FilmController(filmService);
         Film film1 = new Film();
         film1.setName("Ok");
