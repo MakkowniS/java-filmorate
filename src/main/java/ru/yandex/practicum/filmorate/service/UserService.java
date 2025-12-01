@@ -153,12 +153,12 @@ public class UserService {
     }
 
     private User getUserAndCheckNull(Long userId) {
-        User user = userStorage.getUser(userId);
-        if (user == null) {
+        try {
+            return userStorage.getUser(userId);
+        } catch (NullPointerException e) {
             log.warn("Указанного ID {} нет в списке активных юзеров.", userId);
             throw new NotFoundException("Указанный ID (" + userId + ")не найден");
         }
-        return user;
     }
 
 }

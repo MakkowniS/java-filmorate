@@ -6,8 +6,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.validation.Marker;
 
 import java.time.LocalDate;
@@ -20,12 +24,16 @@ public class FilmControllerTest {
 
     @Autowired
     private Validator validator;
-    @Autowired
+    private FilmStorage  filmStorage;
+    private FilmService filmService;
     private FilmController filmController;
     private Film film;
 
     @BeforeEach
     public void setup() {
+        filmStorage = new InMemoryFilmStorage();
+        filmService = new FilmService(filmStorage);
+        filmController = new FilmController(filmService);
         Film film1 = new Film();
         film1.setName("Ok");
         film1.setReleaseDate(LocalDate.now());
@@ -135,7 +143,7 @@ public class FilmControllerTest {
     void updateFilmThrowsWhenIdNotExists() {
         film.setId(10L);
 
-        assertThrows(ValidationException.class, () -> filmController.updateFilm(film));
+        assertThrows(NotFoundException.class, () -> filmController.updateFilm(film));
     }
 
     @Test

@@ -6,8 +6,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.validation.Marker;
 
 import java.time.LocalDate;
@@ -20,12 +24,16 @@ public class UserControllerTest {
 
     @Autowired
     private Validator validator;
-    @Autowired
+    private UserStorage userStorage;
+    private UserService userService;
     private UserController userController;
     private User user;
 
     @BeforeEach
     void setup() {
+        userStorage = new InMemoryUserStorage();
+        userService = new UserService(userStorage);
+        userController = new UserController(userService);
         User user1 = new User();
         user1.setEmail("email1@yandex.ru");
         user1.setLogin("login1");
@@ -142,6 +150,6 @@ public class UserControllerTest {
     void updateUserThrowsWhenIdNotExists() {
         user.setId(10L);
 
-        assertThrows(ValidationException.class, () -> userController.updateUser(user));
+        assertThrows(NotFoundException.class, () -> userController.updateUser(user));
     }
 }

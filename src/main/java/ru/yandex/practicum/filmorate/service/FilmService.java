@@ -32,43 +32,48 @@ public class FilmService {
     }
 
     public Film updateFilm(Film newFilm) {
-        Film storedFilm = filmStorage.getFilmById(newFilm.getId());
+        try {
+            Film storedFilm = filmStorage.getFilmById(newFilm.getId());
 
-        // Проверка содержания ID в списке
-        if (storedFilm == null) {
+            // Проверка содержания ID в списке
+            if (storedFilm == null) {
+                log.warn("Фильм с ID:{} не найден", newFilm.getId());
+                throw new NotFoundException("Фильма с ID: " + newFilm.getId() + " не найдено");
+            }
+
+            // Проверка наличия Name в запросе
+            if (newFilm.getName() != null) {
+                if (!newFilm.getName().isBlank()) {
+                    storedFilm.setName(newFilm.getName());
+                    log.debug("Название обновлено. Name:{}", newFilm.getName());
+                } else { // Если передан пустой Name (" ")
+                    throw new ValidationException("Название не может быть пустым");
+                }
+            }
+
+            // Проверка наличия Description в запросе
+            if (newFilm.getDescription() != null) {
+                storedFilm.setDescription(newFilm.getDescription());
+                log.debug("Описание обновлено. Description:{}", newFilm.getDescription());
+            }
+
+            // Проверка наличия ReleaseDate в запросе
+            if (newFilm.getReleaseDate() != null) {
+                storedFilm.setReleaseDate(newFilm.getReleaseDate());
+                log.debug("Дата релиза обновлена. ReleaseDate:{}", newFilm.getReleaseDate());
+            }
+
+            // Проверка наличия Duration в запросе
+            if (newFilm.getDuration() != null) {
+                storedFilm.setDuration(newFilm.getDuration());
+                log.debug("Продолжительность обновлена. Duration:{}", newFilm.getDuration());
+            }
+
+            return filmStorage.updateFilm(storedFilm);
+        } catch (NullPointerException e) {
             log.warn("Фильм с ID:{} не найден", newFilm.getId());
             throw new NotFoundException("Фильма с ID: " + newFilm.getId() + " не найдено");
         }
-
-        // Проверка наличия Name в запросе
-        if (newFilm.getName() != null) {
-            if (!newFilm.getName().isBlank()) {
-                storedFilm.setName(newFilm.getName());
-                log.debug("Название обновлено. Name:{}", newFilm.getName());
-            } else { // Если передан пустой Name (" ")
-                throw new ValidationException("Название не может быть пустым");
-            }
-        }
-
-        // Проверка наличия Description в запросе
-        if (newFilm.getDescription() != null) {
-            storedFilm.setDescription(newFilm.getDescription());
-            log.debug("Описание обновлено. Description:{}", newFilm.getDescription());
-        }
-
-        // Проверка наличия ReleaseDate в запросе
-        if (newFilm.getReleaseDate() != null) {
-            storedFilm.setReleaseDate(newFilm.getReleaseDate());
-            log.debug("Дата релиза обновлена. ReleaseDate:{}", newFilm.getReleaseDate());
-        }
-
-        // Проверка наличия Duration в запросе
-        if (newFilm.getDuration() != null) {
-            storedFilm.setDuration(newFilm.getDuration());
-            log.debug("Продолжительность обновлена. Duration:{}", newFilm.getDuration());
-        }
-
-        return filmStorage.updateFilm(storedFilm);
     }
 
     public void deleteFilmById(Long id) {
