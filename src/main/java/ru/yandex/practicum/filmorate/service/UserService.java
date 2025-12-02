@@ -101,11 +101,6 @@ public class UserService {
         log.info("Удаление из друзей юзеров с ID: {} и {}", firstUserId, secondUserId);
 
         User firstUser = getUserAndCheckNull(firstUserId);
-        if (!firstUser.getFriendsIds().contains(secondUserId)) {
-            log.warn("Юзера с ID: {} не найдено в списке юзера с ID: {}", secondUserId, firstUserId);
-            throw new IncorrectParameterException("Юзера с таким ID: " + firstUserId + " в списке друзей не найдено.");
-        }
-
         User secondUser = getUserAndCheckNull(secondUserId);
 
         firstUser.getFriendsIds().remove(secondUserId);
