@@ -24,7 +24,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFound(NotFoundException e) {
-        return new ErrorResponse("Ошибка параметра.", e.getMessage());
+        return new ErrorResponse("Не найдено.", e.getMessage());
     }
 
     // Обработка IncorrectParameterException

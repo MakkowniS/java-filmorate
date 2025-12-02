@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -11,20 +13,17 @@ import java.util.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserStorage userStorage;
-
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
 
     public Collection<User> getAllUsers() {
         return userStorage.getUsers();
     }
 
     public User getUserById(Long id) {
-        return userStorage.getUser(id);
+        return getUserAndCheckNull(id);
     }
 
     public User checkAndCreateUser(User user) {
@@ -74,21 +73,25 @@ public class UserService {
     }
 
     public void deleteUserById(Long id) {
-        getUserAndCheckNull(id);// Проверяем на наличие юзера с ID
+        User user = getUserAndCheckNull(id);// Проверяем на наличие юзера с ID
+        // Удаление ID юзера из списков его друзей
+        user.getFriendsIds().stream()
+                .map(userStorage::getUser)
+                .forEach(friendUser -> friendUser.getFriendsIds().remove(id));
         userStorage.deleteUser(id);
     }
 
     public User addFriend(Long userId, Long friendId) {
         log.info("Добавление в друзья юзеров с ID: {} и {}", userId, friendId);
+        if (userId.equals(friendId)) {
+            throw new IncorrectParameterException("Нельзя добавить себя в друзья.");
+        }
 
         User user = getUserAndCheckNull(userId);
         User friend = getUserAndCheckNull(friendId);
 
         user.getFriendsIds().add(friendId);
         friend.getFriendsIds().add(userId);
-
-        userStorage.updateUser(user);
-        userStorage.updateUser(friend);
 
         log.info("Друзья добавлены.");
         return user;
@@ -98,13 +101,15 @@ public class UserService {
         log.info("Удаление из друзей юзеров с ID: {} и {}", firstUserId, secondUserId);
 
         User firstUser = getUserAndCheckNull(firstUserId);
+        if (!firstUser.getFriendsIds().contains(secondUserId)) {
+            log.warn("Юзера с ID: {} не найдено в списке юзера с ID: {}", secondUserId, firstUserId);
+            throw new IncorrectParameterException("Юзера с таким ID: " + firstUserId + " в списке друзей не найдено.");
+        }
+
         User secondUser = getUserAndCheckNull(secondUserId);
 
         firstUser.getFriendsIds().remove(secondUserId);
         secondUser.getFriendsIds().remove(firstUserId);
-
-        userStorage.updateUser(firstUser);
-        userStorage.updateUser(secondUser);
 
         log.info("Дружба удалена.");
     }
@@ -152,13 +157,13 @@ public class UserService {
         }
     }
 
-    private User getUserAndCheckNull(Long userId) {
-        try {
-            return userStorage.getUser(userId);
-        } catch (NullPointerException e) {
+    protected User getUserAndCheckNull(Long userId) {
+        User user = userStorage.getUser(userId);
+        if (user == null) {
             log.warn("Указанного ID {} нет в списке активных юзеров.", userId);
             throw new NotFoundException("Указанный ID (" + userId + ")не найден");
         }
+        return user;
     }
 
 }

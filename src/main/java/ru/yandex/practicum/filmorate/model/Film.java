@@ -16,17 +16,6 @@ import java.util.HashSet;
 @EqualsAndHashCode(callSuper = false, of = "id")
 public class Film {
 
-    public Film(Film otherFilm) {
-        this.id = otherFilm.id;
-        this.name = otherFilm.name;
-        this.description = otherFilm.description;
-        this.releaseDate = otherFilm.releaseDate;
-        this.duration = otherFilm.duration;
-        this.likedUserIds = new HashSet<>(otherFilm.likedUserIds);
-    }
-
-    private HashSet<Long> likedUserIds = new HashSet<>();
-
     @Null(groups = Marker.OnCreate.class)
     @NotNull(groups = Marker.OnUpdate.class, message = "ID должен быть указан")
     private Long id;
@@ -43,4 +32,6 @@ public class Film {
 
     @PositiveOrZero(groups = {Marker.OnUpdate.class, Marker.OnCreate.class}, message = "Продолжительность не может быть отрицательной")
     private Integer duration;
+
+    private HashSet<Long> likedUserIds = new HashSet<>();
 }

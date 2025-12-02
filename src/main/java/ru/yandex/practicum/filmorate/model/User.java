@@ -15,17 +15,6 @@ import java.util.HashSet;
 @EqualsAndHashCode(callSuper = false, of = "id")
 public class User {
 
-    public User(User otherUser) {
-        this.id = otherUser.id;
-        this.email = otherUser.email;
-        this.login = otherUser.login;
-        this.name = otherUser.name;
-        this.birthday = otherUser.birthday;
-        this.friendsIds = new HashSet<>(otherUser.friendsIds);
-    }
-
-    private HashSet<Long> friendsIds = new HashSet<>();
-
     @Null(groups = Marker.OnCreate.class, message = "При создании пользователя ID не должен указываться")
     @NotNull(groups = Marker.OnUpdate.class, message = "ID должен быть указан")
     private Long id;
@@ -42,4 +31,6 @@ public class User {
 
     @PastOrPresent(groups = {Marker.OnUpdate.class, Marker.OnCreate.class}, message = "Некорректная дата рождения")
     private LocalDate birthday;
+
+    private HashSet<Long> friendsIds = new HashSet<>();
 }

@@ -38,7 +38,7 @@ public class FilmController {
     public List<Film> getPopularFilms(
             @RequestParam(required = false, defaultValue = "10") String count) {
         log.info("Запрос на получение списка Топ 10 популярных фильмов");
-        return filmService.findTop10LikedFilms(Integer.parseInt(count));
+        return filmService.showTopLikedFilms(Integer.parseInt(count));
     }
 
     @PostMapping
