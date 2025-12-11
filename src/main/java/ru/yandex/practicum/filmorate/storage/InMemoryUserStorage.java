@@ -1,0 +1,56 @@
+package ru.yandex.practicum.filmorate.storage;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.User;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+@Component
+public class InMemoryUserStorage implements UserStorage {
+
+    private final Map<Long, User> users = new HashMap<>();
+
+    @Override
+    public Collection<User> getUsers() {
+        return users.values();
+    }
+
+    @Override
+    public User getUser(Long userId) {
+        return users.get(userId);
+    }
+
+    @Override
+    public User addUser(User user) {
+        user.setId(getNextId());
+        users.put(user.getId(), user);
+
+        log.info("Пользователь успешно создан: id={}, email={}, login={}", user.getId(), user.getEmail(), user.getLogin());
+        return user;
+    }
+
+    @Override
+    public User updateUser(User newUser) {
+        users.put(newUser.getId(), newUser);
+        log.info("Пользователь ID:{} успешно обновлён", newUser.getId());
+        return newUser;
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        users.remove(id);
+    }
+
+    private Long getNextId() {
+        long currentId = users.keySet().stream()
+                .mapToLong(id -> id)
+                .max()
+                .orElse(0);
+        return ++currentId;
+    }
+
+}

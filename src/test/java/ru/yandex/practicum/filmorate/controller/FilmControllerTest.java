@@ -6,8 +6,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.validation.Marker;
 
 import java.time.LocalDate;
@@ -20,13 +27,18 @@ public class FilmControllerTest {
 
     @Autowired
     private Validator validator;
-
+    private UserStorage userStorage = new InMemoryUserStorage();
+    private UserService userService = new UserService(userStorage);
+    private FilmStorage  filmStorage;
+    private FilmService filmService;
     private FilmController filmController;
     private Film film;
 
     @BeforeEach
     public void setup() {
-        filmController = new FilmController();
+        filmStorage = new InMemoryFilmStorage();
+        filmService = new FilmService(userService, filmStorage);
+        filmController = new FilmController(filmService);
         Film film1 = new Film();
         film1.setName("Ok");
         film1.setReleaseDate(LocalDate.now());
@@ -134,14 +146,14 @@ public class FilmControllerTest {
 
     @Test
     void updateFilmThrowsWhenIdNotExists() {
-        film.setId(10);
+        film.setId(10L);
 
-        assertThrows(ValidationException.class, () -> filmController.updateFilm(film));
+        assertThrows(NotFoundException.class, () -> filmController.updateFilm(film));
     }
 
     @Test
     void updateFilmSucceedWhenIdExistsAndFilmValidOnBoundaries() {
-        film.setId(1);
+        film.setId(1L);
         film.setName("S");
         film.setDescription("L".repeat(200));
         film.setReleaseDate(LocalDate.of(1895, 12, 28));
@@ -154,7 +166,7 @@ public class FilmControllerTest {
 
     @Test
     void updateFilmThrowsWhenNameIsNotNullButBlank() {
-        film.setId(1);
+        film.setId(1L);
         film.setName("");
 
         assertThrows(ValidationException.class, () -> filmController.updateFilm(film));

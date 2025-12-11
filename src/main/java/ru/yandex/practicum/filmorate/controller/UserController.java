@@ -1,16 +1,15 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.validation.Marker;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -18,99 +17,67 @@ import java.util.Map;
 @Validated
 public class UserController {
 
-    private final Map<Integer, User> users = new HashMap<>();
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public Collection<User> getUsers() {
-        return users.values();
+        log.info("Запрос на получение списка пользователей.");
+        return userService.getAllUsers();
+    }
+
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable Long id) {
+        log.info("Запрос на получение юзера с id:{}", id);
+        return userService.getUserById(id);
+    }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> getUserFriends(@PathVariable Long id) {
+        log.info("Запрос на получения списка друзей юзера с id:{}", id);
+        return userService.getUsersFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
+        log.info("Запрос на получение общего списка друзей пользователй с id {} и {}", id, otherId);
+        return userService.findCommonFriends(id, otherId);
     }
 
     @PostMapping
-    @Validated({Marker.OnCreate.class})
-    public User createUser(@Valid @RequestBody User user) {
+    public User createUser(@Validated(Marker.OnCreate.class) @RequestBody User user) {
         log.info("Запрос на создание нового пользователя: {}", user);
-
-        // Проверка на дубль Email и Login
-        isEmailExists(user);
-        isLoginExists(user);
-
-        user.setId(getNextId());
-        log.debug("Валидация пройдена. ID:{} установлен", user.getId());
-
-        // Проверка на наличие имени для отображения
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-            log.debug("Name не обнаружен. Использование Login для Name: {}", user.getName());
-        }
-
-        users.put(user.getId(), user);
-        log.info("Пользователь успешно создан: id={}, email={}, login={}", user.getId(), user.getEmail(), user.getLogin());
-
-        return user;
+        return userService.checkAndCreateUser(user);
     }
 
     @PutMapping
-    @Validated({Marker.OnUpdate.class})
-    public User updateUser(@Valid @RequestBody User newUser) {
+    public User updateUser(@Validated(Marker.OnUpdate.class) @RequestBody User newUser) {
         log.info("Запрос на обновление пользователя. Новые данные: {}", newUser);
-
-        // Поиск ID в списке
-        User oldUser = users.get(newUser.getId());
-        if (oldUser == null) {
-            log.warn("Пользователь с ID:{} не найден", newUser.getId());
-            throw new ValidationException("User с указанным ID: " + newUser.getId() + " не найден");
-        }
-
-        // Поиск Email в запросе
-        if (newUser.getEmail() != null && !newUser.getEmail().isBlank()) {
-            // Проверка Email на дубль
-            isEmailExists(newUser);
-            oldUser.setEmail(newUser.getEmail());
-            log.debug("Email:{} обновлён.", newUser.getEmail());
-        }
-
-        // Поиск Login в запросе
-        if (newUser.getLogin() != null && !newUser.getLogin().isBlank()) {
-            // Проверка Login на дубль
-            isLoginExists(newUser);
-            oldUser.setLogin(newUser.getLogin());
-            log.debug("Login:{} обновлён", newUser.getLogin());
-        }
-
-        // Поиск Birthday в запросе
-        if (newUser.getBirthday() != null) {
-            oldUser.setBirthday(newUser.getBirthday());
-            log.debug("дата рождения:{} обновлена", newUser.getBirthday());
-        }
-
-        // Поиск Name в запросе
-        if (newUser.getName() != null) {
-            oldUser.setName(newUser.getName().isBlank() ? oldUser.getLogin() : newUser.getName());
-            log.debug("Name:{} обновлено", oldUser.getName());
-        }
-
-        log.info("Пользователь ID:{} успешно обновлён", oldUser.getId());
-        return oldUser;
+        return userService.updateUser(newUser);
     }
 
-    private Integer getNextId() {
-        int currentId = users.keySet().stream().mapToInt(id -> id).max().orElse(0);
-        return ++currentId;
+    @PutMapping("/{userId}/friends/{friendId}")
+    public User addUserFriend(@PathVariable Long userId, @PathVariable Long friendId) {
+        log.info("Запрос на добавление юзеру с id:{} друга с id: {}", userId, friendId);
+        return userService.addFriend(userId, friendId);
     }
 
-    private void isEmailExists(User user) {
-        boolean emailExists = users.values().stream().anyMatch(u -> u.getEmail().equals(user.getEmail()));
-        if (emailExists) {
-            log.warn("Использование зарегистрированного email: {}", user.getEmail());
-            throw new ValidationException("Данная электронная почта уже используется");
-        }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable Long id) {
+        log.info("Запрос на удаление пользователя: {}", id);
+        userService.deleteUserById(id);
     }
 
-    private void isLoginExists(User user) {
-        boolean loginExists = users.values().stream().anyMatch(u -> u.getLogin().equals(user.getLogin()));
-        if (loginExists) {
-            log.warn("Использование зарегистрированного login: {}", user.getLogin());
-            throw new ValidationException("Данный Login уже используется");
-        }
+    @DeleteMapping("/{id}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUserFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        log.info("Запрос на удаление у юзера с id:{} друга с id: {}", id, friendId);
+        userService.removeFriend(id, friendId);
     }
+
 }
