@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -14,20 +14,34 @@ import java.util.*;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
-    private final UserStorage userStorage;
+    private final UserStorage inMemoryStorage;
+    private final UserStorage dbStorage;
 
-    public Collection<User> getAllUsers() {
-        return userStorage.getUsers();
+    public UserService(@Qualifier("inMemoryUserStorage") UserStorage inMemoryStorage,
+                       @Qualifier("userDbStorage") UserStorage dbStorage){
+        this.inMemoryStorage = inMemoryStorage;
+        this.dbStorage = dbStorage;
     }
 
-    public User getUserById(Long id) {
+    // DbStorage Сервис
+
+
+
+
+
+    // InMemoryStorage Сервис
+
+    public Collection<User> getAllUsersFromMemory() {
+        return inMemoryStorage.getUsers();
+    }
+
+    public User getUserByIdFromMemory(Long id) {
         return getUserAndCheckNull(id);
     }
 
-    public User checkAndCreateUser(User user) {
+    public User checkAndCreateUserInMemory(User user) {
         // Проверка на повторение Login и Email
         isEmailExists(user);
         isLoginExists(user);
@@ -38,10 +52,10 @@ public class UserService {
             log.debug("Name не обнаружен. Использование Login для Name: {}", user.getName());
         }
 
-        return userStorage.addUser(user);
+        return inMemoryStorage.addUser(user);
     }
 
-    public User updateUser(User newUser) {
+    public User updateUserInMemory(User newUser) {
 
         // Поиск ID в списке активных пользователей
         User storedUser = getUserAndCheckNull(newUser.getId());
@@ -70,16 +84,18 @@ public class UserService {
             log.debug("Name:{} обновлено", storedUser.getName());
         }
 
-        return userStorage.updateUser(storedUser);
+        return inMemoryStorage.updateUser(storedUser);
     }
 
     public void deleteUserById(Long id) {
         User user = getUserAndCheckNull(id);// Проверяем на наличие юзера с ID
         // Удаление ID юзера из списков его друзей
         user.getFriendsIds().keySet().stream()
-                .map(userStorage::getUser)
+                .map(inMemoryStorage::getUser)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .forEach(friendUser -> friendUser.getFriendsIds().remove(id));
-        userStorage.deleteUser(id);
+        inMemoryStorage.deleteUser(id);
     }
 
     public User addFriend(Long userId, Long friendId) {
@@ -114,7 +130,9 @@ public class UserService {
         User user = getUserAndCheckNull(id);
         Set<Long> friendsIds = user.getFriendsIds().keySet();
         return friendsIds.stream()
-                .map(userStorage::getUser)
+                .map(inMemoryStorage::getUser)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .toList();
     }
 
@@ -128,7 +146,9 @@ public class UserService {
         firstUserFriendsIds.retainAll(secondUserFriendsIds);
 
         List<User> commonFriends = firstUserFriendsIds.stream()
-                .map(userStorage::getUser)
+                .map(inMemoryStorage::getUser)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .toList();
 
         log.info("Найдено {} общих друзей.", commonFriends.size());
@@ -136,7 +156,7 @@ public class UserService {
     }
 
     private void isEmailExists(User user) {
-        boolean emailExists = userStorage.getUsers().stream()
+        boolean emailExists = inMemoryStorage.getUsers().stream()
                 .anyMatch(u -> !u.getId().equals(user.getId()) && u.getEmail().equals(user.getEmail()));
         if (emailExists) {
             log.warn("Использование зарегистрированного email: {}", user.getEmail());
@@ -145,7 +165,7 @@ public class UserService {
     }
 
     private void isLoginExists(User user) {
-        boolean loginExists = userStorage.getUsers().stream()
+        boolean loginExists = inMemoryStorage.getUsers().stream()
                 .anyMatch(u -> !u.getId().equals(user.getId()) && u.getLogin().equals(user.getLogin()));
         if (loginExists) {
             log.warn("Использование зарегистрированного login: {}", user.getLogin());
@@ -154,12 +174,12 @@ public class UserService {
     }
 
     protected User getUserAndCheckNull(Long userId) {
-        User user = userStorage.getUser(userId);
-        if (user == null) {
+        Optional<User> user = inMemoryStorage.getUser(userId);
+        if (user.isEmpty()) {
             log.warn("Указанного ID {} нет в списке активных юзеров.", userId);
             throw new NotFoundException("Указанный ID (" + userId + ")не найден");
         }
-        return user;
+        return user.get();
     }
 
 }
