@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.validation.Marker;
 import ru.yandex.practicum.filmorate.validation.annotation.AfterFirstFilmRelease;
 
-
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -33,5 +33,8 @@ public class Film {
     @PositiveOrZero(groups = {Marker.OnUpdate.class, Marker.OnCreate.class}, message = "Продолжительность не может быть отрицательной")
     private Integer duration;
 
-    private HashSet<Long> likedUserIds = new HashSet<>();
+    private Set<Genre> genres = new HashSet<>();
+
+    private Mpa mpaRating;
+
 }

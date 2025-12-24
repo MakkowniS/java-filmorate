@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -75,7 +76,7 @@ public class UserService {
     public void deleteUserById(Long id) {
         User user = getUserAndCheckNull(id);// Проверяем на наличие юзера с ID
         // Удаление ID юзера из списков его друзей
-        user.getFriendsIds().stream()
+        user.getFriendsIds().keySet().stream()
                 .map(userStorage::getUser)
                 .forEach(friendUser -> friendUser.getFriendsIds().remove(id));
         userStorage.deleteUser(id);
@@ -90,8 +91,8 @@ public class UserService {
         User user = getUserAndCheckNull(userId);
         User friend = getUserAndCheckNull(friendId);
 
-        user.getFriendsIds().add(friendId);
-        friend.getFriendsIds().add(userId);
+        user.getFriendsIds().put(friendId, FriendshipStatus.CONFIRMED);
+        friend.getFriendsIds().put(userId,  FriendshipStatus.CONFIRMED);
 
         log.info("Друзья добавлены.");
         return user;
@@ -111,7 +112,7 @@ public class UserService {
 
     public Collection<User> getUsersFriends(Long id) {
         User user = getUserAndCheckNull(id);
-        Set<Long> friendsIds = user.getFriendsIds();
+        Set<Long> friendsIds = user.getFriendsIds().keySet();
         return friendsIds.stream()
                 .map(userStorage::getUser)
                 .toList();
@@ -120,8 +121,8 @@ public class UserService {
     public List<User> findCommonFriends(Long firstUserId, Long secondUserId) {
         log.info("Поиск общих друзей юзеров с ID: {} и {}", firstUserId, secondUserId);
 
-        HashSet<Long> firstUserFriendsIds = new HashSet<>(getUserAndCheckNull(firstUserId).getFriendsIds());
-        HashSet<Long> secondUserFriendsIds = new HashSet<>(getUserAndCheckNull(secondUserId).getFriendsIds());
+        HashSet<Long> firstUserFriendsIds = new HashSet<>(getUserAndCheckNull(firstUserId).getFriendsIds().keySet());
+        HashSet<Long> secondUserFriendsIds = new HashSet<>(getUserAndCheckNull(secondUserId).getFriendsIds().keySet());
 
         // Ищем пересечения списков ID
         firstUserFriendsIds.retainAll(secondUserFriendsIds);

@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.validation.Marker;
 import ru.yandex.practicum.filmorate.validation.annotation.NotContainsWhitespaces;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 
 @Data
 @NoArgsConstructor
@@ -32,5 +31,4 @@ public class User {
     @PastOrPresent(groups = {Marker.OnUpdate.class, Marker.OnCreate.class}, message = "Некорректная дата рождения")
     private LocalDate birthday;
 
-    private HashSet<Long> friendsIds = new HashSet<>();
 }
