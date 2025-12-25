@@ -31,7 +31,7 @@ public class UserService {
         this.dbStorage = dbStorage;
     }
 
-    // DbStorage Сервис
+    // ===== DB Storage =====
 
     // Добавление пользователя в БД
     public UserDto createUserInDb(NewUserRequest request){
@@ -76,7 +76,8 @@ public class UserService {
         dbStorage.deleteUser(userId);
     }
 
-    // InMemoryStorage Сервис
+    // ===== InMemory Storage =====
+
     public Collection<User> getAllUsersFromMemory() {
         return inMemoryStorage.getUsers();
     }

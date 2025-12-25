@@ -23,6 +23,7 @@ public class FilmController {
         this.filmService = filmService;
     }
 
+    /*
     @GetMapping
     public Collection<Film> getFilms() {
         return filmService.getAllFilms();
@@ -72,4 +73,6 @@ public class FilmController {
         log.info("Запрос на удаление у фильма с id:{} лайка от юзера: {}", id, userId);
         filmService.removeLike(id, userId);
     }
+
+     */
 }

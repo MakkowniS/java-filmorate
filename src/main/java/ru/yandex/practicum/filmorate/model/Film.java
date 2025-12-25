@@ -30,11 +30,12 @@ public class Film {
     @NotNull(groups = Marker.OnCreate.class, message = "Дата релиза не может быть пустой")
     private LocalDate releaseDate;
 
-    @PositiveOrZero(groups = {Marker.OnUpdate.class, Marker.OnCreate.class}, message = "Продолжительность не может быть отрицательной")
+    @Positive(groups = {Marker.OnUpdate.class, Marker.OnCreate.class}, message = "Продолжительность не может быть отрицательной")
     private Integer duration;
 
     private Set<Genre> genres = new HashSet<>();
 
-    private Mpa mpaRating;
+    private Mpa mpa;
 
+    private Set<Long> likedUserIds = new HashSet<>();
 }
