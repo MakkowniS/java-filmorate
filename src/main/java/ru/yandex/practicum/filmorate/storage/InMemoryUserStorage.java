@@ -18,8 +18,24 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Optional<User> getUser(Long userId) {
+    public Optional<User> getUserById(Long userId) {
         return Optional.ofNullable(users.get(userId));
+    }
+
+    @Override
+    public Optional<User> getUserByEmail(String email) {
+        return Optional.ofNullable(users.values().stream()
+                .filter(u -> u.getEmail().equals(email))
+                .findFirst()
+                .orElse(null));
+    }
+
+    @Override
+    public Optional<User> getUserByLogin(String login) {
+        return Optional.ofNullable(users.values().stream()
+                .filter(user -> user.getLogin().equals(login))
+                .findFirst()
+                .orElse(null));
     }
 
     @Override

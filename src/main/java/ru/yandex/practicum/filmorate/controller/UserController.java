@@ -1,28 +1,56 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.validation.Marker;
 
 import java.util.Collection;
-import java.util.List;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 @Validated
 public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<UserDto> getAllUsers() {
+        log.info("Получение всех пользователей");
+        return userService.getUsers();
     }
 
+    @GetMapping("/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDto getUser(@PathVariable Long userId) {
+        log.info("Получение пользователя с Id:{}", userId);
+        return userService.getUserById(userId);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserDto createUser(@Validated @RequestBody NewUserRequest request) {
+        log.info("Создание пользователя");
+        return userService.createUserInDb(request);
+    }
+
+    @PutMapping("/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDto updateUser(@PathVariable Long userId, @Validated @RequestBody UpdateUserRequest request) {
+        log.info("Обновление пользователя с Id:{}", userId);
+        return userService.updateUser(userId, request);
+    }
+
+
+    /*
     @GetMapping
     public Collection<User> getUsers() {
         log.info("Запрос на получение списка пользователей.");
@@ -79,5 +107,7 @@ public class UserController {
         log.info("Запрос на удаление у юзера с id:{} друга с id: {}", id, friendId);
         userService.removeFriend(id, friendId);
     }
+
+     */
 
 }

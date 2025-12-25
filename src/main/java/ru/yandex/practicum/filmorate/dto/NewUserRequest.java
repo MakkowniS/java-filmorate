@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Data
 public class NewUserRequest {
 
-    @Email
+    @Email(message = "Неверный формат электронной почты")
     @NotBlank(message = "Поле Email не может быть пустым")
     private String email;
 

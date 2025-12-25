@@ -14,9 +14,12 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     private static final String FIND_ALL_QUERY = "SELECT * FROM users";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM users where id = ?";
+    private static final String FIND_BY_EMAIL_QUERY = "SELECT * FROM users where email = ?";
+    private static final String FIND_BY_LOGIN_QUERY = "SELECT * FROM users where login = ?";
     private static final String INSERT_QUERY = "INSERT INTO users(email, login, name, birthday) VALUES (?, ?, ?, ?)" +
             "RETURNING id";
     private static final String UPDATE_QUERY = "UPDATE users SET email = ?, name = ?, birthday = ? WHERE id = ?";
+    private static final String DELETE_QUERY = "DELETE FROM users WHERE id = ?";
 
     public UserDbStorage(JdbcTemplate jdbcTemplate, RowMapper<User> rowMapper) {
         super(jdbcTemplate, rowMapper);
@@ -28,8 +31,18 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     }
 
     @Override
-    public Optional<User> getUser(Long userId) {
+    public Optional<User> getUserById(Long userId) {
         return findOne(FIND_BY_ID_QUERY, userId);
+    }
+
+    @Override
+    public Optional<User> getUserByEmail(String email) {
+        return findOne(FIND_BY_EMAIL_QUERY, email);
+    }
+
+    @Override
+    public Optional<User> getUserByLogin(String login) {
+        return findOne(FIND_BY_LOGIN_QUERY, login);
     }
 
     @Override
@@ -59,7 +72,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     @Override
     public void deleteUser(Long id) {
-
+        delete(DELETE_QUERY, id);
     }
 
 }
