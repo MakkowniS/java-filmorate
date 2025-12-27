@@ -24,9 +24,4 @@ public interface FilmStorage {
     // Удаление фильма
     void deleteFilm(Long id);
 
-    void addLike(Long filmId, Long userId);
-    void removeLike(Long filmId, Long userId);
-    Set<Long> getLikedUserIds(Long filmId);
-
-    List<Film> getTopLikedFilms(int count);
 }

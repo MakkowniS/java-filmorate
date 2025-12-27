@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
+public class  FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     private final GenreRowMapper genreRowMapper;
 
@@ -128,42 +128,5 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         List<Genre> genres = jdbc.query(query, genreRowMapper, film.getId());
 
         film.setGenres(new HashSet<>(genres));
-    }
-
-    // ===== Likes =====
-
-    public void addLike(Long filmId, Long userId) {
-        String query = "INSERT INTO film_likes (film_id, user_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
-        jdbc.update(query, filmId, userId);
-    }
-
-    public void removeLike(Long filmId, Long userId) {
-        String query = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
-        jdbc.update(query, filmId, userId);
-    }
-
-    public Set<Long> getLikedUserIds(Long filmId) {
-        String query = "SELECT user_id FROM film_likes WHERE film_id = ?";
-        return new HashSet<>(jdbc.query(query, (rs, rowNum) -> rs.getLong("user_id"), filmId));
-    }
-
-    public List<Film> getTopLikedFilms(int count) {
-        String query = """
-            SELECT
-                f.id, 
-                f.name,
-                f.description,
-                f.release_date,
-                f.duration,
-                m.id AS mpa_id,
-                m.rating AS mpa_name
-            FROM films f
-            LEFT JOIN film_likes fl ON f.id = fl.film_id
-            LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
-            GROUP BY f.id
-            ORDER BY COUNT(fl.user_id) DESC
-            LIMIT ?
-        """;
-        return jdbc.query(query, rowMapper, count);
     }
 }

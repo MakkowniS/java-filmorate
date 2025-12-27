@@ -46,7 +46,7 @@ public class ErrorHandler {
         return new ValidationErrorResponse(violations);
     }
 
-    @ExceptionHandler()
+    @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse onConstraintViolationException(ConstraintViolationException e) {
         final List<Violation> violations = e.getConstraintViolations().stream()

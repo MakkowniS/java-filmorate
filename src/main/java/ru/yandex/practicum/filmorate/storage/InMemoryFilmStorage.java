@@ -52,26 +52,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.debug("Фильм с id:{} удалён.", id);
     }
 
-    @Override
-    public void addLike(Long filmId, Long userId) {
-        films.get(filmId).getLikedUserIds().add(userId);
-    }
-
-    @Override
-    public void removeLike(Long filmId, Long userId) {
-        films.get(filmId).getLikedUserIds().remove(userId);
-    }
-
-    @Override
-    public Set<Long> getLikedUserIds(Long filmId) {
-        return films.get(filmId).getLikedUserIds();
-    }
-
-    @Override
-    public List<Film> getTopLikedFilms(int count) {
-        return List.of();
-    }
-
     private Long getNextId() {
         long currentId = films.keySet().stream()
                 .mapToLong(id -> id)

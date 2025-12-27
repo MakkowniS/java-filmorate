@@ -7,11 +7,9 @@ import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
-import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -24,23 +22,27 @@ public class UserService {
 
     private final UserStorage inMemoryStorage;
     private final UserStorage dbStorage;
+    private final FriendshipService friendshipService;
 
-    public UserService(@Qualifier("inMemoryUserStorage") UserStorage inMemoryStorage,
-                       @Qualifier("userDbStorage") UserStorage dbStorage){
+    public UserService(
+            FriendshipService friendshipService,
+            @Qualifier("inMemoryUserStorage") UserStorage inMemoryStorage,
+            @Qualifier("userDbStorage") UserStorage dbStorage) {
         this.inMemoryStorage = inMemoryStorage;
         this.dbStorage = dbStorage;
+        this.friendshipService = friendshipService;
     }
 
     // ===== DB Storage =====
 
     // Добавление пользователя в БД
-    public UserDto createUserInDb(NewUserRequest request){
+    public UserDto createUserInDb(NewUserRequest request) {
         Optional<User> alreadyExistEmail = dbStorage.getUserByEmail(request.getEmail());
-        if (alreadyExistEmail.isPresent()){
+        if (alreadyExistEmail.isPresent()) {
             throw new DuplicatedDataException("Данный Email уже используется");
         }
         Optional<User> alreadyExistLogin = dbStorage.getUserByLogin(request.getLogin());
-        if (alreadyExistLogin.isPresent()){
+        if (alreadyExistLogin.isPresent()) {
             throw new DuplicatedDataException("Данный Login уже используется");
         }
         User user = UserMapper.mapToUser(request);
@@ -50,21 +52,21 @@ public class UserService {
     }
 
     // Получение пользователя по Id и списка всех пользователей
-    public UserDto getUserById(long userId){
+    public UserDto getUserByIdInDb(long userId) {
         return dbStorage.getUserById(userId)
                 .map(UserMapper::mapToUserDto)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
     }
 
-    public List<UserDto> getUsers(){
+    public List<UserDto> getUsersFromDb() {
         return dbStorage.getUsers().stream()
                 .map(UserMapper::mapToUserDto)
                 .collect(Collectors.toList());
     }
 
     // Обновление пользователя в БД
-    public UserDto updateUser(long userId, UpdateUserRequest  request){
-        User updatedUser = dbStorage.getUserById(userId)
+    public UserDto updateUserInDb(UpdateUserRequest request) {
+        User updatedUser = dbStorage.getUserById(request.getId())
                 .map(user -> UserMapper.updateUserFields(user, request))
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         updatedUser = dbStorage.updateUser(updatedUser);
@@ -72,8 +74,12 @@ public class UserService {
     }
 
     // Удаление пользователя из БД
-    public void deleteUser(long userId){
+    public void deleteUserInDb(long userId) {
+        getUserByIdInDb(userId);
+        friendshipService.deleteAllFriendsInDb(userId);
         dbStorage.deleteUser(userId);
+
+        log.info("Пользователь {} и все его дружбы удалены из БД", userId);
     }
 
     // ===== InMemory Storage =====
@@ -132,72 +138,12 @@ public class UserService {
         return inMemoryStorage.updateUser(storedUser);
     }
 
-    public void deleteUserByIdInMemory(Long id) {
-        User user = getUserAndCheckNullInMemory(id);// Проверяем на наличие юзера с ID
-        // Удаление ID юзера из списков его друзей
-        user.getFriendsIds().keySet().stream()
-                .map(inMemoryStorage::getUserById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .forEach(friendUser -> friendUser.getFriendsIds().remove(id));
-        inMemoryStorage.deleteUser(id);
-    }
+    public void deleteUserByIdInMemory(Long userId) {
+        getUserAndCheckNullInMemory(userId);
+        friendshipService.deleteAllFriendsInMemory(userId);
+        inMemoryStorage.deleteUser(userId);
 
-    public User addFriendInMemory(Long userId, Long friendId) {
-        log.info("Добавление в друзья юзеров с ID: {} и {}", userId, friendId);
-        if (userId.equals(friendId)) {
-            throw new IncorrectParameterException("Нельзя добавить себя в друзья.");
-        }
-
-        User user = getUserAndCheckNullInMemory(userId);
-        User friend = getUserAndCheckNullInMemory(friendId);
-
-        user.getFriendsIds().put(friendId, FriendshipStatus.CONFIRMED);
-        friend.getFriendsIds().put(userId,  FriendshipStatus.CONFIRMED);
-
-        log.info("Друзья добавлены.");
-        return user;
-    }
-
-    public void removeFriendInMemory(Long firstUserId, Long secondUserId) {
-        log.info("Удаление из друзей юзеров с ID: {} и {}", firstUserId, secondUserId);
-
-        User firstUser = getUserAndCheckNullInMemory(firstUserId);
-        User secondUser = getUserAndCheckNullInMemory(secondUserId);
-
-        firstUser.getFriendsIds().remove(secondUserId);
-        secondUser.getFriendsIds().remove(firstUserId);
-
-        log.info("Дружба удалена.");
-    }
-
-    public Collection<User> getUsersFriendsInMemory(Long id) {
-        User user = getUserAndCheckNullInMemory(id);
-        Set<Long> friendsIds = user.getFriendsIds().keySet();
-        return friendsIds.stream()
-                .map(inMemoryStorage::getUserById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
-    }
-
-    public List<User> findCommonFriendsInMemory(Long firstUserId, Long secondUserId) {
-        log.info("Поиск общих друзей юзеров с ID: {} и {}", firstUserId, secondUserId);
-
-        HashSet<Long> firstUserFriendsIds = new HashSet<>(getUserAndCheckNullInMemory(firstUserId).getFriendsIds().keySet());
-        HashSet<Long> secondUserFriendsIds = new HashSet<>(getUserAndCheckNullInMemory(secondUserId).getFriendsIds().keySet());
-
-        // Ищем пересечения списков ID
-        firstUserFriendsIds.retainAll(secondUserFriendsIds);
-
-        List<User> commonFriends = firstUserFriendsIds.stream()
-                .map(inMemoryStorage::getUserById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
-
-        log.info("Найдено {} общих друзей.", commonFriends.size());
-        return commonFriends;
+        log.info("Пользователь {} и все его дружбы удалены из памяти", userId);
     }
 
     private void isEmailExistsInMemory(User user) {
@@ -224,7 +170,5 @@ public class UserService {
                     log.warn("Указанного ID {} нет в списке активных юзеров.", userId);
                     return new NotFoundException("Указанный ID (" + userId + ")не найден");
                 });
-
     }
-
 }

@@ -24,6 +24,7 @@ public class UserMapper {
         userDto.setId(user.getId());
         userDto.setName(user.getName());
         userDto.setEmail(user.getEmail());
+        userDto.setLogin(user.getLogin());
         userDto.setBirthday(user.getBirthday());
         return userDto;
     }
@@ -31,6 +32,9 @@ public class UserMapper {
     public static User updateUserFields(User user, UpdateUserRequest request){
         if (request.hasEmail()){
             user.setEmail(request.getEmail());
+        }
+        if  (request.hasLogin()){
+            user.setLogin(request.getLogin());
         }
         if (request.hasName()){
             user.setName(request.getName());

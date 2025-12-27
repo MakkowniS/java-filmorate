@@ -1,11 +1,10 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dto.FilmDto;
-import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
-import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.dto.*;
 import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -13,11 +12,11 @@ import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.MpaStorage;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,13 +27,23 @@ public class FilmService {
     private final MpaStorage mpaStorage;
     private final FilmStorage inMemoryStorage;
     private final FilmStorage dbStorage;
+    private final FilmLikesStorage inMemoryLikesStorage;
+    private final FilmLikesStorage dbLikesStorage;
 
-    public FilmService(UserService userService,  GenreStorage genreStorage, MpaStorage mpaStorage,
-                       @Qualifier("inMemoryFilmStorage") FilmStorage inMemoryStorage,
-                       @Qualifier("filmDbStorage") FilmStorage dbStorage) {
+    public FilmService(
+            UserService userService,
+            GenreStorage genreStorage,
+            MpaStorage mpaStorage,
+            @Qualifier("inMemoryFilmLikesStorage") FilmLikesStorage inMemoryLikesStorage,
+            @Qualifier("filmLikesDbStorage") FilmLikesStorage dbLikesStorage,
+            @Qualifier("inMemoryFilmStorage") FilmStorage inMemoryStorage,
+            @Qualifier("filmDbStorage") FilmStorage dbStorage
+    ) {
         this.userService = userService;
         this.genreStorage = genreStorage;
         this.mpaStorage = mpaStorage;
+        this.inMemoryLikesStorage = inMemoryLikesStorage;
+        this.dbLikesStorage = dbLikesStorage;
         this.inMemoryStorage = inMemoryStorage;
         this.dbStorage = dbStorage;
     }
@@ -42,20 +51,36 @@ public class FilmService {
     // =============== DB Storage ===============
 
     public FilmDto createFilmInDb(NewFilmRequest request) {
-        Mpa mpa = mpaStorage.getMpaById(request.getMpaId())
+
+        Mpa mpa = mpaStorage.getMpaById(request.getMpa().getId())
                 .orElseThrow(() -> new NotFoundException("MPA с таким ID не найден"));
 
-        Set<Genre> genres = genreStorage.findManyByIds(request.getGenreIds());
-        Film film = FilmMapper.mapToFilm(request, mpa, genres);
+        Set<Integer> requestedGenreIds = request.getGenres().stream()
+                .map(GenreDto::getId)
+                .collect(Collectors.toSet());
+        // Берём жанры из БД
+        Set<Genre> genres = genreStorage.getManyGenresByIds(requestedGenreIds);
 
+        // Преобразовываем найденные жанры в ID
+        Set<Integer> foundGenreIds = genres.stream()
+                .map(Genre::getId)
+                .collect(Collectors.toSet());
+        // Удаляем из запрошенных все найденные жанры. Если остались в списке, значит не найдены
+        requestedGenreIds.removeAll(foundGenreIds);
+        if (!requestedGenreIds.isEmpty()) {
+            throw new NotFoundException("Жанры не найдены: " + requestedGenreIds);
+        }
+
+        Film film = FilmMapper.mapToFilm(request, mpa, genres);
         film = dbStorage.createFilm(film);
 
         return FilmMapper.mapToFilmDto(film);
     }
 
-    public FilmDto updateFilmInDb(Long filmId, UpdateFilmRequest request) {
-        Film film = dbStorage.getFilmById(filmId)
-                .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
+
+    public FilmDto updateFilmInDb(UpdateFilmRequest request) {
+        Film film = dbStorage.getFilmById(request.getId())
+                .orElseThrow(() -> new NotFoundException("Фильм с ID " + request.getId() + " не найден"));
 
         Mpa mpa = null;
         if (request.hasMpa()) {
@@ -65,7 +90,7 @@ public class FilmService {
 
         Set<Genre> genres = Collections.emptySet();
         if (request.hasGenres()) {
-            genres = genreStorage.findManyByIds(request.getGenreIds());
+            genres = genreStorage.getManyGenresByIds(request.getGenreIds());
         }
 
         FilmMapper.updateFilmFields(film, request, mpa, genres);
@@ -74,19 +99,19 @@ public class FilmService {
         return FilmMapper.mapToFilmDto(film);
     }
 
-    public FilmDto getFilmByIdFromDb(Long id) {
+    public FilmDto getFilmByIdInDb(Long id) {
         Film film = dbStorage.getFilmById(id)
                 .orElseThrow(() -> new NotFoundException("Фильм с ID " + id + " не найден"));
         return FilmMapper.mapToFilmDto(film);
     }
 
-    public List<FilmDto> getAllFilmsFromDb() {
+    public List<FilmDto> getAllFilmsInDb() {
         return dbStorage.getFilms().stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
 
-    public void deleteFilmByIdFromDb(Long id) {
+    public void deleteFilmByIdInDb(Long id) {
         dbStorage.deleteFilm(id);
     }
 
@@ -104,8 +129,6 @@ public class FilmService {
     public Film getFilmByIdFromMemory(Long id) {
         return getFilmAndCheckNullInMemory(id);
     }
-
-
 
     public Film updateFilmInMemory(Film newFilm) {
         Film storedFilm = getFilmAndCheckNullInMemory(newFilm.getId());
@@ -150,65 +173,60 @@ public class FilmService {
     // =============== Likes ===============
 
     public void addLikeInDb(Long filmId, Long userId) {
-        log.info("Добавление лайка: filmId={}, userId={}", filmId, userId);
-
         getFilmAndCheckNullInDb(filmId);
-        userService.getUserById(userId);
+        userService.getUserByIdInDb(userId);
+        dbLikesStorage.addLike(filmId, userId);
+        log.info("Лайк поставлен.");
 
-        dbStorage.addLike(filmId, userId);
+    }
+
+    public List<UserDto> getLikedUsersInDb(Long filmId) {
+        getFilmAndCheckNullInDb(filmId);
+        List<Long> likedUserIds = dbLikesStorage.getLikedUserIds(filmId);
+        return likedUserIds.stream().map(userService::getUserByIdInDb).toList();
     }
 
     public void removeLikeInDb(Long filmId, Long userId) {
-        log.info("Удаление лайка: filmId={}, userId={}", filmId, userId);
-
         getFilmAndCheckNullInDb(filmId);
-        userService.getUserById(userId);
-
-        dbStorage.removeLike(filmId, userId);
+        userService.getUserByIdInDb(userId);
+        dbLikesStorage.removeLike(filmId, userId);
+        log.info("Лайк удалён.");
     }
 
     public void addLikeInMemory(Long filmId, Long userId) {
-        log.info("Добавление лайка от юзера: {} фильму: {}", userId, filmId);
-
         userService.getUserAndCheckNullInMemory(userId);
         getFilmAndCheckNullInMemory(filmId);
-        inMemoryStorage.addLike(filmId, userId);
-        log.info("Лайк добавлен");
+        inMemoryLikesStorage.addLike(filmId, userId);
+        log.info("Лайк поставлен.");
+    }
+
+    public List<User> getLikedUsersInMemory(Long filmId) {
+        getFilmAndCheckNullInMemory(filmId);
+        List<Long> likedUserIds = inMemoryLikesStorage.getLikedUserIds(filmId);
+        return likedUserIds.stream().map(userService::getUserByIdFromMemory).toList();
     }
 
     public void removeLikeInMemory(Long filmId, Long userId) {
-        log.info("Удаление лайка от юзера: {} у фильма: {}", userId, filmId);
-
         getFilmAndCheckNullInMemory(filmId);
-        inMemoryStorage.removeLike(filmId, userId);
-
+        inMemoryLikesStorage.removeLike(filmId, userId);
         log.info("Лайк удалён.");
     }
 
     // =============== Top Likes ===============
 
     public List<FilmDto> showTopLikedFilmsInDb(int count) {
-        if (count <= 0) {
-            log.warn("Неверное значение параметра Count: {}", count);
-            throw new IncorrectParameterException("count должен быть > 0");
-        }
-        return dbStorage.getTopLikedFilms(count).stream()
-                .map(FilmMapper::mapToFilmDto)
-                .toList();
+        validationCountParameter(count);
+        List<Long> topFilmsIds = dbLikesStorage.getTopLikedFilmIds(count);
+        return topFilmsIds.stream().map(this::getFilmByIdInDb).toList();
     }
 
     public List<Film> showTopLikedFilmsInMemory(int count) {
-        if (count <= 0) {
-            log.warn("Неверное значение параметра Count: {}", count);
-            throw new IncorrectParameterException("count должен быть > 0");
-        }
-        return inMemoryStorage.getFilms().stream()
-                .sorted(Comparator.comparingLong((Film f) -> f.getLikedUserIds().size()).reversed())
-                .limit(count)
-                .toList();
+        validationCountParameter(count);
+        List<Long> topFilmIds = inMemoryLikesStorage.getTopLikedFilmIds(count);
+        return topFilmIds.stream().map(this::getFilmByIdFromMemory).toList();
     }
 
-    // ================= Helpers =================
+    // ================= Хелперы =================
 
     private Film getFilmAndCheckNullInMemory(Long id) {
         return inMemoryStorage.getFilmById(id)
@@ -218,5 +236,12 @@ public class FilmService {
     private Film getFilmAndCheckNullInDb(Long id) {
         return dbStorage.getFilmById(id)
                 .orElseThrow(() -> new NotFoundException("Фильм с ID " + id + " не найден"));
+    }
+
+    private void validationCountParameter(int count) {
+        if (count <= 0) {
+            log.warn("Неверное значение параметра Count: {}", count);
+            throw new IncorrectParameterException("count должен быть > 0");
+        }
     }
 }

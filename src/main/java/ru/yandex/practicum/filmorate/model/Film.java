@@ -37,5 +37,6 @@ public class Film {
 
     private Mpa mpa;
 
-    private Set<Long> likedUserIds = new HashSet<>();
+    private Set<GenreList> genresInMemory = new HashSet<>();
+    private MpaList mpaInMemory;
 }

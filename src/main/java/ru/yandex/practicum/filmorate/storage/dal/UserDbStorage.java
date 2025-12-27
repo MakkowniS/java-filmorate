@@ -16,9 +16,8 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM users where id = ?";
     private static final String FIND_BY_EMAIL_QUERY = "SELECT * FROM users where email = ?";
     private static final String FIND_BY_LOGIN_QUERY = "SELECT * FROM users where login = ?";
-    private static final String INSERT_QUERY = "INSERT INTO users(email, login, name, birthday) VALUES (?, ?, ?, ?)" +
-            "RETURNING id";
-    private static final String UPDATE_QUERY = "UPDATE users SET email = ?, name = ?, birthday = ? WHERE id = ?";
+    private static final String INSERT_QUERY = "INSERT INTO users(email, login, name, birthday) VALUES (?, ?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
     private static final String DELETE_QUERY = "DELETE FROM users WHERE id = ?";
 
     public UserDbStorage(JdbcTemplate jdbcTemplate, RowMapper<User> rowMapper) {
@@ -64,6 +63,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
                 UPDATE_QUERY,
                 user.getEmail(),
                 user.getName(),
+                user.getLogin(),
                 user.getBirthday(),
                 user.getId()
         );

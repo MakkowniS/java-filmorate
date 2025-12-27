@@ -10,6 +10,7 @@ public class UserDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private long id;
     private String email;
+    private String login;
     private String name;
     private LocalDate birthday;
 }

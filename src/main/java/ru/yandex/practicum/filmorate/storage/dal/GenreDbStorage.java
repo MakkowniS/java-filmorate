@@ -29,24 +29,26 @@ public class GenreDbStorage extends BaseDbStorage<Genre> implements GenreStorage
         delete("DELETE FROM genre WHERE id = ?", id);
     }
 
-    public List<Genre> findAll() {
+    public List<Genre> getAllGenres() {
         return findMany("SELECT id, name FROM genres");
     }
 
-    public Optional<Genre> findById(Integer id) {
+    public Optional<Genre> getGenreById(Integer id) {
         return findOne("SELECT id, name FROM genres WHERE id = ?", id);
     }
 
-    public Set<Genre> findManyByIds(Set<Integer> genreIds) {
+    public Set<Genre> getManyGenresByIds(Set<Integer> genreIds) {
         if (genreIds == null || genreIds.isEmpty()) {
             return Collections.emptySet();
         }
 
-        String query = "SELECT id, name FROM genres WHERE id IN (" +
-                       genreIds.stream().map(id -> "?").collect(Collectors.joining(",")) +
-                       ")";
-        List<Genre> genres = jdbc.query(query, genreIds.toArray(), rowMapper);
+        String placeholders = genreIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+        String query = "SELECT id, name FROM genres WHERE id IN (" + placeholders + ") ORDER BY id";
 
-        return new HashSet<>(genres);
+        List<Genre> genres = jdbc.query(query, rowMapper, genreIds.toArray());
+
+        return new LinkedHashSet<>(genres);
     }
 }
