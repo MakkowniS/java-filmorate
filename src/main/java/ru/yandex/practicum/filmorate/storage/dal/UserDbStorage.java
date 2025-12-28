@@ -62,8 +62,8 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
         update(
                 UPDATE_QUERY,
                 user.getEmail(),
-                user.getName(),
                 user.getLogin(),
+                user.getName(),
                 user.getBirthday(),
                 user.getId()
         );

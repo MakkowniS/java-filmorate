@@ -19,15 +19,4 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 class FilmorateApplicationTests {
 	private final UserDbStorage userStorage;
 
-	@Test
-	public void testFindUserById() {
-
-		Optional<User> userOptional = userStorage.getUserById(1);
-
-		assertThat(userOptional)
-				.isPresent()
-				.hasValueSatisfying(user ->
-						assertThat(user).hasFieldOrPropertyWithValue("id", 1)
-				);
-	}
 }

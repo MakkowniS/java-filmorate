@@ -1,9 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.yandex.practicum.filmorate.validation.Marker;
 import ru.yandex.practicum.filmorate.validation.annotation.NotContainsWhitespaces;
 
@@ -12,7 +10,9 @@ import java.util.HashSet;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = false, of = "id")
+@Builder(toBuilder = true)
 public class User {
 
     @Null(groups = Marker.OnCreate.class, message = "При создании пользователя ID не должен указываться")
