@@ -11,5 +11,5 @@ public interface GenreStorage {
 
     Optional<Genre> getGenreById(Integer id);
 
-    Set<Genre> getManyGenresByIds(Set<Integer> Ids);
+    Set<Genre> getManyGenresByIds(Set<Integer> id);
 }

@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.validation.annotation;
 
 import jakarta.validation.Constraint;
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.Payload;
 import ru.yandex.practicum.filmorate.validation.validationClass.NotBlankSpacesValidator;
 

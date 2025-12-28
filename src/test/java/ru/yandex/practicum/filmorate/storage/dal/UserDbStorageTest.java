@@ -35,38 +35,26 @@ class UserDbStorageTest {
         jdbcTemplate.update("DELETE FROM users");
 
         jdbcTemplate.update("""
-                    INSERT INTO users (email, login, name, birthday)
-                    VALUES 
+                    INSERT INTO users (email, login, name, birthday) VALUES
                     ('user1@mail.com', 'user1', 'User One', '1990-01-01'),
                     ('user2@mail.com', 'user2', 'User Two', '1995-05-05')
-                """);
+                    """);
     }
 
     @Test
     void shouldReturnAllUsers() {
         List<User> users = userDbStorage.getUsers();
 
-        assertThat(users)
-                .hasSize(2)
-                .extracting(User::getLogin)
-                .containsExactlyInAnyOrder("user1", "user2");
+        assertThat(users).hasSize(2).extracting(User::getLogin).containsExactlyInAnyOrder("user1", "user2");
     }
 
     @Test
     void shouldFindUserById() {
-        Long userId = jdbcTemplate.queryForObject(
-                "SELECT id FROM users WHERE email = ?",
-                Long.class,
-                "user1@mail.com"
-        );
+        Long userId = jdbcTemplate.queryForObject("SELECT id FROM users WHERE email = ?", Long.class, "user1@mail.com");
 
         Optional<User> userOptional = userDbStorage.getUserById(userId);
 
-        assertThat(userOptional)
-                .isPresent()
-                .hasValueSatisfying(user ->
-                        assertThat(user.getId()).isEqualTo(userId)
-                );
+        assertThat(userOptional).isPresent().hasValueSatisfying(user -> assertThat(user.getId()).isEqualTo(userId));
     }
 
     @Test
@@ -80,32 +68,19 @@ class UserDbStorageTest {
     void shouldFindUserByEmail() {
         Optional<User> userOptional = userDbStorage.getUserByEmail("user2@mail.com");
 
-        assertThat(userOptional)
-                .isPresent()
-                .hasValueSatisfying(user ->
-                        assertThat(user.getLogin()).isEqualTo("user2")
-                );
+        assertThat(userOptional).isPresent().hasValueSatisfying(user -> assertThat(user.getLogin()).isEqualTo("user2"));
     }
 
     @Test
     void shouldFindUserByLogin() {
         Optional<User> userOptional = userDbStorage.getUserByLogin("user1");
 
-        assertThat(userOptional)
-                .isPresent()
-                .hasValueSatisfying(user ->
-                        assertThat(user.getEmail()).isEqualTo("user1@mail.com")
-                );
+        assertThat(userOptional).isPresent().hasValueSatisfying(user -> assertThat(user.getEmail()).isEqualTo("user1@mail.com"));
     }
 
     @Test
     void shouldAddUser() {
-        User newUser = User.builder()
-                .email("new@mail.com")
-                .login("newlogin")
-                .name("New User")
-                .birthday(LocalDate.of(2000, 1, 1))
-                .build();
+        User newUser = User.builder().email("new@mail.com").login("newlogin").name("New User").birthday(LocalDate.of(2000, 1, 1)).build();
 
         User savedUser = userDbStorage.addUser(newUser);
 
@@ -113,12 +88,10 @@ class UserDbStorageTest {
 
         Optional<User> userFromDb = userDbStorage.getUserById(savedUser.getId());
 
-        assertThat(userFromDb)
-                .isPresent()
-                .hasValueSatisfying(user -> {
-                    assertThat(user.getEmail()).isEqualTo("new@mail.com");
-                    assertThat(user.getLogin()).isEqualTo("newlogin");
-                });
+        assertThat(userFromDb).isPresent().hasValueSatisfying(user -> {
+            assertThat(user.getEmail()).isEqualTo("new@mail.com");
+            assertThat(user.getLogin()).isEqualTo("newlogin");
+        });
     }
 
     @Test
@@ -132,12 +105,10 @@ class UserDbStorageTest {
 
         Optional<User> userFromDb = userDbStorage.getUserById(1L);
 
-        assertThat(userFromDb)
-                .isPresent()
-                .hasValueSatisfying(dbUser -> {
-                    assertThat(dbUser.getName()).isEqualTo("Updated Name");
-                    assertThat(dbUser.getEmail()).isEqualTo("updated@mail.com");
-                });
+        assertThat(userFromDb).isPresent().hasValueSatisfying(dbUser -> {
+            assertThat(dbUser.getName()).isEqualTo("Updated Name");
+            assertThat(dbUser.getEmail()).isEqualTo("updated@mail.com");
+        });
     }
 
     @Test

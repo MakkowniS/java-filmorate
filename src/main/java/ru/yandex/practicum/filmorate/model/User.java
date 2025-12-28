@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class User {
 
     // Конструктор для InMemory
-    public User(String email, String login, LocalDate birthday){
+    public User(String email, String login, LocalDate birthday) {
         this.email = email;
         this.login = login;
         this.birthday = birthday;

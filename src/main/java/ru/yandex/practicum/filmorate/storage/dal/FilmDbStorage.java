@@ -118,14 +118,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     private void loadGenres(Film film) {
         String query = """
-                    SELECT g.id, g.name
-                    FROM genres g
-                    JOIN film_genres fg ON g.id = fg.genre_id
-                    WHERE fg.film_id = ?
+                SELECT g.id, g.name
+                FROM genres g
+                JOIN film_genres fg ON g.id = fg.genre_id
+                WHERE fg.film_id = ?
                 """;
 
         List<Genre> genres = jdbc.query(query, genreRowMapper, film.getId());
-
         film.setGenres(new HashSet<>(genres));
     }
 }
