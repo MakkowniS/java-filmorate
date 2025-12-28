@@ -18,7 +18,7 @@ public class GenreDbStorage extends BaseDbStorage<Genre> implements GenreStorage
     }
 
     public Genre save(Genre genre) {
-        long id = insert("INSERT IN TO genres(name) VALUES (?) returning id()",
+        long id = insert("INSERT INTO genres(name) VALUES (?)",
                 genre.getName()
                 );
         genre.setId((int) id);
@@ -26,7 +26,7 @@ public class GenreDbStorage extends BaseDbStorage<Genre> implements GenreStorage
     }
 
     public void delete(int id) {
-        delete("DELETE FROM genre WHERE id = ?", id);
+        delete("DELETE FROM genres WHERE id = ?", id);
     }
 
     public List<Genre> getAllGenres() {
