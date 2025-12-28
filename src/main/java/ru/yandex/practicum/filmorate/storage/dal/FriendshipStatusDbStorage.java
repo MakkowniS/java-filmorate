@@ -24,13 +24,15 @@ public class FriendshipStatusDbStorage implements FriendshipStatusStorage {
             WHERE name = ?
         """;
 
-        Integer id = jdbc.queryForObject(sql, Integer.class, status.name());
-
-        if (id == null) {
+        try {
+            Integer id = jdbc.queryForObject(sql, Integer.class, status.name());
+            if (id == null) {
+                throw new NotFoundException("Статус дружбы " + status + " не найден");
+            }
+            return id;
+        } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Статус дружбы " + status + " не найден");
         }
-
-        return id;
     }
 
     @Override
