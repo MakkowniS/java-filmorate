@@ -19,10 +19,10 @@ public class FriendshipStatusDbStorage implements FriendshipStatusStorage {
     @Override
     public int getIdByStatus(FriendshipStatus status) {
         String sql = """
-            SELECT id
-            FROM friendship_status
-            WHERE name = ?
-        """;
+                    SELECT id
+                    FROM friendship_status
+                    WHERE name = ?
+                """;
 
         try {
             Integer id = jdbc.queryForObject(sql, Integer.class, status.name());
@@ -38,10 +38,10 @@ public class FriendshipStatusDbStorage implements FriendshipStatusStorage {
     @Override
     public Optional<FriendshipStatus> getStatusById(int id) {
         String sql = """
-            SELECT name
-            FROM friendship_status
-            WHERE id = ?
-        """;
+                    SELECT name
+                    FROM friendship_status
+                    WHERE id = ?
+                """;
 
         try {
             String name = jdbc.queryForObject(sql, String.class, id);

@@ -5,7 +5,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.dal.mappers.GenreRowMapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,14 +12,14 @@ import java.util.stream.Collectors;
 @Repository
 public class GenreDbStorage extends BaseDbStorage<Genre> implements GenreStorage {
 
-    public GenreDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Genre>  rowMapper) {
+    public GenreDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Genre> rowMapper) {
         super(jdbcTemplate, rowMapper);
     }
 
     public Genre save(Genre genre) {
         long id = insert("INSERT INTO genres(name) VALUES (?)",
                 genre.getName()
-                );
+        );
         genre.setId((int) id);
         return genre;
     }

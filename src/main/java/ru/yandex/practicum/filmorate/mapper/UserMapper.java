@@ -10,7 +10,7 @@ import ru.yandex.practicum.filmorate.model.User;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserMapper {
 
-    public static User mapToUser(NewUserRequest request){
+    public static User mapToUser(NewUserRequest request) {
         User user = new User();
         user.setEmail(request.getEmail());
         user.setLogin(request.getLogin());
@@ -29,17 +29,17 @@ public class UserMapper {
         return userDto;
     }
 
-    public static User updateUserFields(User user, UpdateUserRequest request){
-        if (request.hasEmail()){
+    public static User updateUserFields(User user, UpdateUserRequest request) {
+        if (request.hasEmail()) {
             user.setEmail(request.getEmail());
         }
-        if  (request.hasLogin()){
+        if (request.hasLogin()) {
             user.setLogin(request.getLogin());
         }
-        if (request.hasName()){
+        if (request.hasName()) {
             user.setName(request.getName());
         }
-        if (request.hasBirthday()){
+        if (request.hasBirthday()) {
             user.setBirthday(request.getBirthday());
         }
         return user;

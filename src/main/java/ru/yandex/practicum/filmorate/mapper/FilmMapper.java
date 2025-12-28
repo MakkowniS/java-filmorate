@@ -14,7 +14,7 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FilmMapper {
 
-    public static Film mapToFilm(NewFilmRequest request, Mpa mpa, Set<Genre> genres){
+    public static Film mapToFilm(NewFilmRequest request, Mpa mpa, Set<Genre> genres) {
         Film film = new Film();
         film.setName(request.getName());
         film.setDescription(request.getDescription());
@@ -25,7 +25,7 @@ public class FilmMapper {
         return film;
     }
 
-    public static FilmDto mapToFilmDto(Film film){
+    public static FilmDto mapToFilmDto(Film film) {
         FilmDto dto = new FilmDto();
         dto.setId(film.getId());
         dto.setName(film.getName());
@@ -37,7 +37,7 @@ public class FilmMapper {
         return dto;
     }
 
-    public static Film updateFilmFields(Film film, UpdateFilmRequest request,Mpa mpa, Set<Genre> genres) {
+    public static Film updateFilmFields(Film film, UpdateFilmRequest request, Mpa mpa, Set<Genre> genres) {
 
         if (request.hasName()) {
             film.setName(request.getName());

@@ -13,24 +13,24 @@ import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-public class BaseDbStorage<T>{
+public class BaseDbStorage<T> {
     protected final JdbcTemplate jdbc;
     protected final RowMapper<T> rowMapper;
 
-    protected List<T> findMany(String query, Object... params){
+    protected List<T> findMany(String query, Object... params) {
         return jdbc.query(query, rowMapper, params);
     }
 
-    protected Optional<T> findOne(String query, Object... params){
-        try{
+    protected Optional<T> findOne(String query, Object... params) {
+        try {
             T result = jdbc.queryForObject(query, rowMapper, params);
             return Optional.ofNullable(result);
-        } catch (EmptyResultDataAccessException ignored){
+        } catch (EmptyResultDataAccessException ignored) {
             return Optional.empty();
         }
     }
 
-    protected long insert(String query, Object... params){
+    protected long insert(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
@@ -41,21 +41,21 @@ public class BaseDbStorage<T>{
         }, keyHolder);
 
         Number key = keyHolder.getKey();
-        if (key != null){
+        if (key != null) {
             return key.longValue();
         } else {
             throw new InternalServerException("Не удалось сохранить данные");
         }
     }
 
-    protected void update(String query, Object... params){
+    protected void update(String query, Object... params) {
         int rowsAffected = jdbc.update(query, params);
         if (rowsAffected == 0) {
             throw new InternalServerException("Не удалось обновить данные");
         }
     }
 
-    protected boolean delete(String query, long id){
+    protected boolean delete(String query, long id) {
         int rowsDeleted = jdbc.update(query, id);
         return rowsDeleted > 0;
     }

@@ -6,7 +6,6 @@ import ru.yandex.practicum.filmorate.validation.Marker;
 import ru.yandex.practicum.filmorate.validation.annotation.NotContainsWhitespaces;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 
 @Data
 @NoArgsConstructor
@@ -14,6 +13,13 @@ import java.util.HashSet;
 @EqualsAndHashCode(callSuper = false, of = "id")
 @Builder(toBuilder = true)
 public class User {
+
+    // Конструктор для InMemory
+    public User(String email, String login, LocalDate birthday){
+        this.email = email;
+        this.login = login;
+        this.birthday = birthday;
+    }
 
     @Null(groups = Marker.OnCreate.class, message = "При создании пользователя ID не должен указываться")
     @NotNull(groups = Marker.OnUpdate.class, message = "ID должен быть указан")

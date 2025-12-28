@@ -32,17 +32,16 @@ public class FilmLikesDbStorage implements FilmLikesStorage {
     }
 
 
-
     @Override
     public List<Long> getTopLikedFilmIds(int count) {
         String sql = """
-            SELECT f.id
-            FROM films f
-            LEFT JOIN film_likes fl ON f.id = fl.film_id
-            GROUP BY f.id
-            ORDER BY COUNT(fl.user_id) DESC
-            LIMIT ?
-        """;
+                    SELECT f.id
+                    FROM films f
+                    LEFT JOIN film_likes fl ON f.id = fl.film_id
+                    GROUP BY f.id
+                    ORDER BY COUNT(fl.user_id) DESC
+                    LIMIT ?
+                """;
         return jdbc.queryForList(sql, Long.class, count);
     }
 }

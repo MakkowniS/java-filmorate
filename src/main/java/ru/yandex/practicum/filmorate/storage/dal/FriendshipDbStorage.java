@@ -95,10 +95,10 @@ public class FriendshipDbStorage implements FriendshipStorage {
     @Override
     public boolean existsFriendship(long userId, long friendId) {
         String sql = """
-        SELECT COUNT(*)
-        FROM friendships
-        WHERE user_id = ? AND friend_id = ?
-    """;
+                    SELECT COUNT(*)
+                    FROM friendships
+                    WHERE user_id = ? AND friend_id = ?
+                """;
 
         Integer count = jdbc.queryForObject(sql, Integer.class, userId, friendId);
         return count != null && count > 0;

@@ -135,9 +135,9 @@ public class FriendshipService {
             throw new IncorrectParameterException("Нельзя добавить себя в друзья");
         }
         dbUserStorage.getUserById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id:"+ userId +" не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь с id:" + userId + " не найден"));
         dbUserStorage.getUserById(friendId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id:"+ friendId +" не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь с id:" + friendId + " не найден"));
     }
 
     private void validateUsersInMemory(long userId, long friendId) {
@@ -145,9 +145,9 @@ public class FriendshipService {
             throw new IncorrectParameterException("Нельзя добавить себя в друзья");
         }
         inMemoryUserStorage.getUserById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id:"+ userId +" не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь с id:" + userId + " не найден"));
         inMemoryUserStorage.getUserById(friendId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id:"+ friendId +" не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь с id:" + friendId + " не найден"));
     }
 }
 

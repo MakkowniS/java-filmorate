@@ -9,35 +9,34 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.dal.mappers.GenreRowMapper;
 
 import java.util.HashSet;
-import java.util.Set;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class  FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
+public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     private final GenreRowMapper genreRowMapper;
 
     private static final String FIND_ALL_QUERY = """
-    SELECT
-        f.id,
-        f.name,
-        f.description,
-        f.release_date,
-        f.duration,
-        m.id AS mpa_id,
-        m.rating AS mpa_name
-    FROM films f
-    LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
-    """;
+            SELECT
+                f.id,
+                f.name,
+                f.description,
+                f.release_date,
+                f.duration,
+                m.id AS mpa_id,
+                m.rating AS mpa_name
+            FROM films f
+            LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
+            """;
 
     private static final String FIND_BY_ID_QUERY = FIND_ALL_QUERY + " WHERE f.id = ?";
 
     private static final String INSERT_FILM_QUERY = "INSERT INTO films (name, description, release_date, " +
-                                                    "duration, mpa_rating) VALUES (?, ?, ?, ?, ?)";
+            "duration, mpa_rating) VALUES (?, ?, ?, ?, ?)";
 
     private static final String UPDATE_FILM_QUERY = "UPDATE films SET name = ?, description = ?, release_date = ?," +
-                                                    " duration = ?, mpa_rating = ? WHERE id = ?";
+            " duration = ?, mpa_rating = ? WHERE id = ?";
 
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
 
@@ -119,11 +118,11 @@ public class  FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     private void loadGenres(Film film) {
         String query = """
-            SELECT g.id, g.name
-            FROM genres g
-            JOIN film_genres fg ON g.id = fg.genre_id
-            WHERE fg.film_id = ?
-        """;
+                    SELECT g.id, g.name
+                    FROM genres g
+                    JOIN film_genres fg ON g.id = fg.genre_id
+                    WHERE fg.film_id = ?
+                """;
 
         List<Genre> genres = jdbc.query(query, genreRowMapper, film.getId());
 
