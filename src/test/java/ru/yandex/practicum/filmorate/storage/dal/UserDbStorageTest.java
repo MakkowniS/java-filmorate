@@ -149,8 +149,15 @@ class UserDbStorageTest {
         assertThat(userOptional).isEmpty();
     }
 
+    // ===== Конфиг =====
+
     @TestConfiguration
     static class TestConfig {
+
+        @Bean
+        UserDbStorage userDbStorage(JdbcTemplate jdbcTemplate, RowMapper<User> userRowMapper) {
+            return new UserDbStorage(jdbcTemplate, userRowMapper);
+        }
 
         @Bean
         RowMapper<User> userRowMapper() {
