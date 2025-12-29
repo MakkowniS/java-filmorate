@@ -21,6 +21,6 @@ public class NewUserRequest {
 
     private String name;
 
-    @PastOrPresent
+    @PastOrPresent(message = "Некорректная дата рождения")
     private LocalDate birthday;
 }

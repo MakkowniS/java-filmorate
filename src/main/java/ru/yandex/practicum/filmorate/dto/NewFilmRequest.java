@@ -1,12 +1,12 @@
 package ru.yandex.practicum.filmorate.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.validation.annotation.MinReleaseDate;
-import ru.yandex.practicum.filmorate.validation.annotation.NotBlankSpaces;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -16,7 +16,7 @@ import java.util.Set;
 @NoArgsConstructor
 public class NewFilmRequest {
 
-    @NotBlankSpaces
+    @NotBlank
     private String name;
 
     @Size(max = 200)

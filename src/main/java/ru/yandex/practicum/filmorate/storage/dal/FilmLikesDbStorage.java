@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.dal;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.storage.FilmLikesStorage;
@@ -9,6 +10,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
+@Primary
 public class FilmLikesDbStorage implements FilmLikesStorage {
 
     private final JdbcTemplate jdbc;
@@ -30,7 +32,6 @@ public class FilmLikesDbStorage implements FilmLikesStorage {
         String query = "SELECT user_id FROM film_likes WHERE film_id = ?";
         return jdbc.queryForList(query, Long.class, filmId);
     }
-
 
     @Override
     public List<Long> getTopLikedFilmIds(int count) {

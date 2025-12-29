@@ -24,6 +24,14 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getFilmsByIds(List<Long> ids) {
+        return ids.stream()
+                .map(films::get)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    @Override
     public Film createFilm(Film film) {
         film.setId(getNextId());
         films.put(film.getId(), film);

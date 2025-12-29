@@ -16,13 +16,11 @@ public class MpaController {
     private final MpaService mpaService;
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public List<Mpa> getAllMpa() {
         return mpaService.getAllMpa();
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public Mpa getMpaById(@PathVariable int id) {
         return mpaService.getMpaById(id);
     }

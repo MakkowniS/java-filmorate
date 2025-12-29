@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.dal;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -8,11 +9,12 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.dal.mappers.GenreRowMapper;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Repository
+@Primary
 public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     private final GenreRowMapper genreRowMapper;
@@ -89,6 +91,31 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         Optional<Film> film = findOne(FIND_BY_ID_QUERY, id);
         film.ifPresent(this::loadGenres);
         return film;
+    }
+
+    @Override
+    public List<Film> getFilmsByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        String FIND_BY_ID_LIST_QUERY = """
+                SELECT *
+                FROM films
+                WHERE id IN (%s)
+                """.formatted(
+                String.join(",", Collections.nCopies(ids.size(), "?"))
+        );
+
+        List<Film> films = jdbc.query(FIND_BY_ID_LIST_QUERY, rowMapper, ids.toArray()); // Получаем список фильмов
+
+        Map<Long, Film> filmMap = films.stream()
+                .collect(Collectors.toMap(Film::getId, Function.identity()));
+
+        return ids.stream()
+                .map(filmMap::get)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     @Override

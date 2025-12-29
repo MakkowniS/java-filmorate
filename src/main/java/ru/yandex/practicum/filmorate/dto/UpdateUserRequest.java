@@ -20,7 +20,7 @@ public class UpdateUserRequest {
 
     private String name;
 
-    @PastOrPresent
+    @PastOrPresent(message = "Некорректная дата рождения")
     private LocalDate birthday;
 
     public boolean hasEmail() {
