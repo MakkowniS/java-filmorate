@@ -23,6 +23,18 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
+    public List<User> getUsersByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+
+        return ids.stream()
+                .map(users::get)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    @Override
     public Optional<User> getUserByEmail(String email) {
         return Optional.ofNullable(users.values().stream()
                 .filter(u -> u.getEmail().equals(email))
@@ -57,6 +69,11 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public void deleteUser(Long id) {
         users.remove(id);
+    }
+
+    @Override
+    public boolean isUserExistsById(Long userId) {
+        return users.containsKey(userId);
     }
 
     private Long getNextId() {

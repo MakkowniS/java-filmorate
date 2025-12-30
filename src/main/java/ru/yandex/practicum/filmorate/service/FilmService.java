@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.*;
 import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -16,25 +18,14 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FilmService {
 
     private final FilmStorage filmStorage;
     private final FilmLikesStorage likesStorage;
     private final GenreStorage genreStorage;
     private final MpaStorage mpaStorage;
-    private final UserService userService;
-
-    public FilmService(FilmStorage filmStorage,
-                       FilmLikesStorage likesStorage,
-                       GenreStorage genreStorage,
-                       MpaStorage mpaStorage,
-                       UserService userService) {
-        this.filmStorage = filmStorage;
-        this.likesStorage = likesStorage;
-        this.genreStorage = genreStorage;
-        this.mpaStorage = mpaStorage;
-        this.userService = userService;
-    }
+    private final UserStorage userStorage;
 
     // ===== Films =====
 
@@ -101,21 +92,22 @@ public class FilmService {
 
     public void addLike(Long filmId, Long userId) {
         getFilmOrThrowNotFound(filmId);
-        userService.getUserByIdInDb(userId);
+
         likesStorage.addLike(filmId, userId);
     }
 
     public void removeLike(Long filmId, Long userId) {
         getFilmOrThrowNotFound(filmId);
-        userService.getUserByIdInDb(userId);
+        validateUserExists(userId);
         likesStorage.removeLike(filmId, userId);
     }
 
     public List<UserDto> getLikedUsers(Long filmId) {
         getFilmOrThrowNotFound(filmId);
-        return likesStorage.getLikedUserIds(filmId).stream()
-                .map(userService::getUserByIdInDb)
+        return userStorage.getUsersByIds(likesStorage.getLikedUserIds(filmId)).stream()
+                .map(UserMapper::mapToUserDto)
                 .toList();
+
     }
 
     public List<FilmDto> getTopLikedFilms(int count) {
@@ -139,6 +131,11 @@ public class FilmService {
         if (count <= 0) {
             log.warn("Неверное значение параметра Count: {}", count);
             throw new IncorrectParameterException("count должен быть > 0");
+        }
+    }
+    private void validateUserExists(Long userId) {
+        if (!userStorage.isUserExistsById(userId)){
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
     }
 }
