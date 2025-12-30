@@ -1,54 +1,18 @@
 -- ===== Genres =====
-INSERT INTO genres(id, name)
-SELECT 1, 'Комедия'
-WHERE NOT EXISTS (SELECT 1 FROM genres WHERE id = 1);
-
-INSERT INTO genres(id, name)
-SELECT 2, 'Драма'
-WHERE NOT EXISTS (SELECT 1 FROM genres WHERE id = 2);
-
-INSERT INTO genres(id, name)
-SELECT 3, 'Мультфильм'
-WHERE NOT EXISTS (SELECT 1 FROM genres WHERE id = 3);
-
-INSERT INTO genres(id, name)
-SELECT 4, 'Триллер'
-WHERE NOT EXISTS (SELECT 1 FROM genres WHERE id = 4);
-
-INSERT INTO genres(id, name)
-SELECT 5, 'Документальный'
-WHERE NOT EXISTS (SELECT 1 FROM genres WHERE id = 5);
-
-INSERT INTO genres(id, name)
-SELECT 6, 'Боевик'
-WHERE NOT EXISTS (SELECT 1 FROM genres WHERE id = 6);
+MERGE INTO genres (id, name) KEY(id) VALUES (1, 'Комедия');
+MERGE INTO genres (id, name) KEY(id) VALUES (2, 'Драма');
+MERGE INTO genres (id, name) KEY(id) VALUES (3, 'Мультфильм');
+MERGE INTO genres (id, name) KEY(id) VALUES (4, 'Триллер');
+MERGE INTO genres (id, name) KEY(id) VALUES (5, 'Документальный');
+MERGE INTO genres (id, name) KEY(id) VALUES (6, 'Боевик');
 
 -- ===== Friendship Status =====
-INSERT INTO friendship_status(id, name)
-SELECT 1, 'CONFIRMED'
-WHERE NOT EXISTS (SELECT 1 FROM friendship_status WHERE id = 1);
-
-INSERT INTO friendship_status(id, name)
-SELECT 2, 'NOT_CONFIRMED'
-WHERE NOT EXISTS (SELECT 1 FROM friendship_status WHERE id = 2);
+MERGE INTO friendship_status (id, name) KEY(id) VALUES (1, 'CONFIRMED');
+MERGE INTO friendship_status (id, name) KEY(id) VALUES (2, 'NOT_CONFIRMED');
 
 -- ===== MPA Ratings =====
-INSERT INTO mpa_ratings(id, rating)
-SELECT 1, 'G'
-WHERE NOT EXISTS (SELECT 1 FROM mpa_ratings WHERE id = 1);
-
-INSERT INTO mpa_ratings(id, rating)
-SELECT 2, 'PG'
-WHERE NOT EXISTS (SELECT 1 FROM mpa_ratings WHERE id = 2);
-
-INSERT INTO mpa_ratings(id, rating)
-SELECT 3, 'PG-13'
-WHERE NOT EXISTS (SELECT 1 FROM mpa_ratings WHERE id = 3);
-
-INSERT INTO mpa_ratings(id, rating)
-SELECT 4, 'R'
-WHERE NOT EXISTS (SELECT 1 FROM mpa_ratings WHERE id = 4);
-
-INSERT INTO mpa_ratings(id, rating)
-SELECT 5, 'NC-17'
-WHERE NOT EXISTS (SELECT 1 FROM mpa_ratings WHERE id = 5);
+MERGE INTO mpa_ratings (id, rating) KEY(id) VALUES (1, 'G');
+MERGE INTO mpa_ratings (id, rating) KEY(id) VALUES (2, 'PG');
+MERGE INTO mpa_ratings (id, rating) KEY(id) VALUES (3, 'PG-13');
+MERGE INTO mpa_ratings (id, rating) KEY(id) VALUES (4, 'R');
+MERGE INTO mpa_ratings (id, rating) KEY(id) VALUES (5, 'NC-17');

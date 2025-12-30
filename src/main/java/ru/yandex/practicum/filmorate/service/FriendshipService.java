@@ -39,9 +39,9 @@ public class FriendshipService {
     public void removeFriend(long userId, long friendId) {
         validateUsers(userId, friendId);
 
-        if (!friendshipStorage.existsFriendship(userId, friendId)) {
+        /* if (!friendshipStorage.existsFriendship(userId, friendId)) {
             throw new NotFoundException("Дружба не найдена");
-        }
+        } */
 
         friendshipStorage.deleteFriend(userId, friendId);
         log.info("Удалена дружба {} -> {}", userId, friendId);

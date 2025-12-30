@@ -36,12 +36,9 @@ public class InMemoryFilmLikesStorage implements FilmLikesStorage {
     }
 
     @Override
-    public List<Long> getTopLikedFilmIds(int count) {
-        return filmLikes.entrySet().stream()
-                .sorted((a, b) -> Integer.compare(b.getValue().size(), a.getValue().size()))
-                .limit(count)
-                .map(Map.Entry::getKey)
-                .toList();
+    public int getLikesCount(long filmId) {
+        return filmLikes.getOrDefault(filmId, Collections.emptySet()).size();
     }
+
 }
 

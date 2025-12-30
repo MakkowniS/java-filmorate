@@ -33,17 +33,11 @@ public class FilmLikesDbStorage implements FilmLikesStorage {
         return jdbc.queryForList(query, Long.class, filmId);
     }
 
-    @Override
-    public List<Long> getTopLikedFilmIds(int count) {
-        String sql = """
-                    SELECT f.id
-                    FROM films f
-                    LEFT JOIN film_likes fl ON f.id = fl.film_id
-                    GROUP BY f.id
-                    ORDER BY COUNT(fl.user_id) DESC
-                    LIMIT ?
-                """;
-        return jdbc.queryForList(sql, Long.class, count);
+    public int getLikesCount(long filmId) {
+        String query = "SELECT COUNT(*) FROM film_likes WHERE film_id = ?";
+        Integer count = jdbc.queryForObject(query, Integer.class, filmId);
+        return count != null ? count : 0;
     }
+
 }
 

@@ -154,6 +154,20 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         delete(DELETE_FILM_QUERY, id);
     }
 
+    @Override
+    public List<Film> getPopular(int count) {
+        String quary = """
+            SELECT f.*
+            FROM films f
+            LEFT JOIN film_likes fl ON f.id = fl.film_id
+            GROUP BY f.id
+            ORDER BY COUNT(fl.user_id) DESC, f.id ASC
+            LIMIT ?
+            """;
+
+        return jdbc.query(quary, rowMapper, count);
+    }
+
     // ===== Genres =====
 
     private void saveGenres(Film film) {
@@ -178,7 +192,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             return Map.of();
         }
 
-        String query = """
+        String query ="""
                 SELECT fg.film_id,
                        g.id,
                        g.name
@@ -191,6 +205,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
         return jdbc.query(query, rs -> {
             Map<Long, Set<Genre>> map = new HashMap<>();
+            GenreRowMapper genreRowMapper = new GenreRowMapper();
 
             while (rs.next()) {
                 long filmId = rs.getLong("film_id");

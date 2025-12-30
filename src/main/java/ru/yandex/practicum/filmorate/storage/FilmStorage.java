@@ -25,4 +25,6 @@ public interface FilmStorage {
     // Удаление фильма
     void deleteFilm(Long id);
 
+    List <Film >getPopular(int count);
+
 }

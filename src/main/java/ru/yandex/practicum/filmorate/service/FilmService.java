@@ -113,9 +113,7 @@ public class FilmService {
     public List<FilmDto> getTopLikedFilms(int count) {
         validationCountParameter(count);
 
-        List<Long> filmIds = likesStorage.getTopLikedFilmIds(count);
-
-        return filmStorage.getFilmsByIds(filmIds).stream()
+        return filmStorage.getPopular(count).stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
