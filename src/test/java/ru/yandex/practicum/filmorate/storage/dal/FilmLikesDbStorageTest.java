@@ -122,31 +122,6 @@ class FilmLikesDbStorageTest {
                 .containsExactly(userId2);
     }
 
-    @Test
-    void shouldReturnTopLikedFilmIds() {
-        Film film2 = new Film();
-        film2.setName("Second Film");
-        film2.setDescription("Desc2");
-        film2.setReleaseDate(LocalDate.of(2021,1,1));
-        film2.setDuration(100);
-        film2.setMpa(new Mpa());
-        film2.getMpa().setId(filmDbStorage.getFilmById(filmId).orElseThrow().getMpa().getId());
-        Film savedFilm2 = filmDbStorage.createFilm(film2);
-
-        // user1 ставит лайк обоим 2 фильмам
-        likesStorage.addLike(filmId, userId1);
-        likesStorage.addLike(savedFilm2.getId(), userId1);
-
-        // user2 ставит лайк только первому фильму
-        likesStorage.addLike(filmId, userId2);
-
-        List<Long> topFilms = likesStorage.getTopLikedFilmIds(1);
-        assertThat(topFilms).containsExactly(filmId);
-
-        topFilms = likesStorage.getTopLikedFilmIds(2);
-        assertThat(topFilms).containsExactly(filmId, savedFilm2.getId());
-    }
-
     // ===== Конфиг =====
     @TestConfiguration
     static class TestConfig {

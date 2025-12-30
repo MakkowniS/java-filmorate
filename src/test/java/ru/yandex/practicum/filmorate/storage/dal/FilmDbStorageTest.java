@@ -33,6 +33,12 @@ class FilmDbStorageTest {
     private FilmDbStorage filmDbStorage;
 
     @Autowired
+    private UserDbStorage userDbStorage;
+
+    @Autowired
+    private FilmLikesDbStorage filmLikesDbStorage;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     private Integer mpaId;
@@ -97,6 +103,46 @@ class FilmDbStorageTest {
         List<Film> films = filmDbStorage.getFilms();
 
         assertThat(films).hasSize(2);
+    }
+
+    @Test
+    void shouldReturnTopLikedFilmIds() {
+        // Создаём пользователей
+        User user1 = new User();
+        user1.setEmail("user1@mail.com");
+        user1.setLogin("user1");
+        user1.setName("User One");
+        user1.setBirthday(LocalDate.of(1990,1,1));
+        User savedUser1 = userDbStorage.addUser(user1);
+        Long userId1 = savedUser1.getId();
+
+        User user2 = new User();
+        user2.setEmail("user2@mail.com");
+        user2.setLogin("user2");
+        user2.setName("User Two");
+        user2.setBirthday(LocalDate.of(1995,5,5));
+        User savedUser2 = userDbStorage.addUser(user2);
+        Long userId2 = savedUser2.getId();
+
+        // Создаём три фильма
+        Film film1 = filmDbStorage.createFilm(createFilm("Film 1"));
+        Film film2 = filmDbStorage.createFilm(createFilm("Film 2"));
+        Film film3 = filmDbStorage.createFilm(createFilm("Film 3"));
+
+        // Добавляем лайки
+        filmLikesDbStorage.addLike(film1.getId(), 1L); // 1 лайк
+        filmLikesDbStorage.addLike(film1.getId(), 2L); // 2 лайка
+        filmLikesDbStorage.addLike(film2.getId(), 1L); // 1 лайк
+        // film3 - 0 лайков
+
+        // Получаем топ-3 фильмов
+        List<Film> popularFilms = filmDbStorage.getPopular(3);
+
+        // Проверяем порядок: film1 (2 лайка), film2 (1 лайк), film3 (0 лайков)
+        assertThat(popularFilms)
+                .hasSize(3)
+                .extracting(Film::getId)
+                .containsExactly(film1.getId(), film2.getId(), film3.getId());
     }
 
     @Test
@@ -173,6 +219,11 @@ class FilmDbStorageTest {
 
                 return user;
             };
+        }
+
+        @Bean
+        FilmLikesDbStorage filmLikesDbStorage(JdbcTemplate jdbcTemplate) {
+            return new FilmLikesDbStorage(jdbcTemplate);
         }
 
         @Bean

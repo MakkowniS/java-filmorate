@@ -95,14 +95,14 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> getPopular(int count) {
         return films.values().stream()
                 .sorted((f1, f2) -> {
-                    // Получаем количество лайков через стороннее хранилище
+                    // Получаем количество лайков через likesStorage хранилище
                     int likes1 = likesStorage.getLikedUserIds(f1.getId()).size();
                     int likes2 = likesStorage.getLikedUserIds(f2.getId()).size();
 
-                    // Сортировка DESC (от большего к меньшему)
+                    // Сортировка DESC
                     int compare = Integer.compare(likes2, likes1);
 
-                    // Если лайков поровну, сортируем по ID для стабильности
+                    // Если лайков поровну, сортируем по ID
                     if (compare == 0) {
                         return Long.compare(f1.getId(), f2.getId());
                     }

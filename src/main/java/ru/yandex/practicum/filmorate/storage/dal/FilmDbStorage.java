@@ -156,16 +156,26 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
 
     @Override
     public List<Film> getPopular(int count) {
-        String quary = """
-            SELECT f.*
-            FROM films f
-            LEFT JOIN film_likes fl ON f.id = fl.film_id
-            GROUP BY f.id
-            ORDER BY COUNT(fl.user_id) DESC, f.id ASC
-            LIMIT ?
-            """;
+        String query = """
+                SELECT
+                f.id,
+                f.name,
+                f.description,
+                f.release_date,
+                f.duration,
+                m.id AS mpa_id,
+                m.rating AS mpa_name
+                FROM films f
+                LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
+                ORDER BY (
+                    SELECT COUNT(*)
+                    FROM film_likes fl
+                    WHERE fl.film_id = f.id
+                ) DESC, f.id ASC
+                LIMIT ?
+                """;
 
-        return jdbc.query(quary, rowMapper, count);
+        return jdbc.query(query, rowMapper, count);
     }
 
     // ===== Genres =====
@@ -192,7 +202,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             return Map.of();
         }
 
-        String query ="""
+        String query = """
                 SELECT fg.film_id,
                        g.id,
                        g.name

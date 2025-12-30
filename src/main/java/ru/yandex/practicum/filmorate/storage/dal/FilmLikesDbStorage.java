@@ -32,12 +32,5 @@ public class FilmLikesDbStorage implements FilmLikesStorage {
         String query = "SELECT user_id FROM film_likes WHERE film_id = ?";
         return jdbc.queryForList(query, Long.class, filmId);
     }
-
-    public int getLikesCount(long filmId) {
-        String query = "SELECT COUNT(*) FROM film_likes WHERE film_id = ?";
-        Integer count = jdbc.queryForObject(query, Integer.class, filmId);
-        return count != null ? count : 0;
-    }
-
 }
 
