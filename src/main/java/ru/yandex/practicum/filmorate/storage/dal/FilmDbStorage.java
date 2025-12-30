@@ -110,9 +110,9 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         List<Film> films = jdbc.query(FIND_BY_ID_LIST_QUERY, rowMapper, ids.toArray()); // Получаем список фильмов
 
         Map<Long, Film> filmMap = films.stream()
-                .collect(Collectors.toMap(Film::getId, Function.identity()));
+                .collect(Collectors.toMap(Film::getId, Function.identity())); // Собираем фильмы в Map<Id, Film>
 
-        return ids.stream()
+        return ids.stream() // Проходим по id и собираем film в нужном для топа порядке
                 .map(filmMap::get)
                 .filter(Objects::nonNull)
                 .toList();

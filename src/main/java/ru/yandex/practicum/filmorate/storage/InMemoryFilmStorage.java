@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
@@ -41,14 +42,43 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film updateFilm(Film film) {
-        if (!films.containsKey(film.getId())) {
-            throw new NotFoundException("Фильм с id=" + film.getId() + " не найден");
+    public Film updateFilm(Film newFilm) {
+        if (!films.containsKey(newFilm.getId())) {
+            throw new NotFoundException("Фильм с id=" + newFilm.getId() + " не найден");
         }
 
-        films.put(film.getId(), film);
-        log.info("Фильм с ID:{} успешно обновлён.", film.getId());
-        return film;
+        Film storedFilm = films.get(newFilm.getId());
+
+        if (newFilm.getName() != null) {
+            if (!newFilm.getName().isBlank()) {
+                storedFilm.setName(newFilm.getName());
+                log.debug("Название обновлено. Name:{}", newFilm.getName());
+            } else { // Если передан пустой Name (" ")
+                throw new ValidationException("Название не может быть пустым");
+            }
+        }
+
+        // Проверка наличия Description в запросе
+        if (newFilm.getDescription() != null) {
+            storedFilm.setDescription(newFilm.getDescription());
+            log.debug("Описание обновлено. Description:{}", newFilm.getDescription());
+        }
+
+        // Проверка наличия ReleaseDate в запросе
+        if (newFilm.getReleaseDate() != null) {
+            storedFilm.setReleaseDate(newFilm.getReleaseDate());
+            log.debug("Дата релиза обновлена. ReleaseDate:{}", newFilm.getReleaseDate());
+        }
+
+        // Проверка наличия Duration в запросе
+        if (newFilm.getDuration() != null) {
+            storedFilm.setDuration(newFilm.getDuration());
+            log.debug("Продолжительность обновлена. Duration:{}", newFilm.getDuration());
+        }
+
+        films.put(newFilm.getId(), newFilm);
+        log.info("Фильм с ID:{} успешно обновлён.", newFilm.getId());
+        return newFilm;
     }
 
     @Override
