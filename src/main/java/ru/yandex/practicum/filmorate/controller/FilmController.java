@@ -28,38 +28,38 @@ public class FilmController {
     @ResponseStatus(HttpStatus.CREATED)
     public FilmDto createFilm(@Valid @RequestBody NewFilmRequest request) {
         log.info("Запрос на добавление нового фильма: {}", request);
-        return filmService.createFilmInDb(request);
+        return filmService.createFilm(request);
     }
 
     @PutMapping
     public FilmDto updateFilm(@Valid @RequestBody UpdateFilmRequest request) {
         log.info("Запрос на обновление данных фильма");
-        return filmService.updateFilmInDb(request);
+        return filmService.updateFilm(request);
     }
 
     @GetMapping("/{filmId}")
     public FilmDto getFilmById(@PathVariable Long filmId) {
         log.info("Запрос на получение фильма с id:{}", filmId);
-        return filmService.getFilmByIdInDb(filmId);
+        return filmService.getFilmById(filmId);
     }
 
     @GetMapping
     public Collection<FilmDto> getFilms() {
-        return filmService.getAllFilmsInDb();
+        return filmService.getAllFilms();
     }
 
     @GetMapping("/popular")
     public List<FilmDto> getPopularFilms(
             @RequestParam(required = false, defaultValue = "10") String count) {
         log.info("Запрос на получение списка Топ 10 популярных фильмов");
-        return filmService.showTopLikedFilmsInDb(Integer.parseInt(count));
+        return filmService.getTopLikedFilms(Integer.parseInt(count));
     }
 
     @DeleteMapping("/{filmId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFilm(@PathVariable Long filmId) {
         log.info("Запрос на удаление фильма с id:{}", filmId);
-        filmService.deleteFilmByIdInDb(filmId);
+        filmService.deleteFilm(filmId);
     }
 
     // ===== Likes =====
@@ -67,12 +67,12 @@ public class FilmController {
     @PutMapping("/{id}/like/{userId}")
     public void likeFilm(@PathVariable Long id, @PathVariable Long userId) {
         log.info("Запрос на добавление фильму с id:{} лайка от юзера: {}", id, userId);
-        filmService.addLikeInDb(id, userId);
+        filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void removeFilmLike(@PathVariable Long id, @PathVariable Long userId) {
         log.info("Запрос на удаление у фильма с id:{} лайка от юзера: {}", id, userId);
-        filmService.removeLikeInDb(id, userId);
+        filmService.removeLike(id, userId);
     }
 }

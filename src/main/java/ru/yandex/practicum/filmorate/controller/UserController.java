@@ -28,33 +28,33 @@ public class UserController {
     @GetMapping
     public Collection<UserDto> getAllUsers() {
         log.info("Получение всех пользователей");
-        return userService.getUsersFromDb();
+        return userService.getUsers();
     }
 
     @GetMapping("/{userId}")
     public UserDto getUser(@PathVariable Long userId) {
         log.info("Получение пользователя с Id:{}", userId);
-        return userService.getUserByIdInDb(userId);
+        return userService.getUserById(userId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@Valid @RequestBody NewUserRequest request) {
         log.info("Создание пользователя");
-        return userService.createUserInDb(request);
+        return userService.createUser(request);
     }
 
     @PutMapping()
     public UserDto updateUser(@Valid @RequestBody UpdateUserRequest request) {
         log.info("Обновление пользователя");
-        return userService.updateUserInDb(request);
+        return userService.updateUser(request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long id) {
         log.info("Запрос на удаление пользователя: {}", id);
-        userService.deleteUserInDb(id);
+        userService.deleteUser(id);
     }
 
     // ===== Friends =====
@@ -62,25 +62,25 @@ public class UserController {
     @GetMapping("/{userId}/friends")
     public List<UserDto> getUserFriends(@PathVariable Long userId) {
         log.info("Запрос на получения списка друзей юзера с id:{}", userId);
-        return friendshipService.getFriendsInDb(userId);
+        return friendshipService.getFriends(userId);
     }
 
     @GetMapping("/{userId}/friends/common/{otherUserId}")
     public List<UserDto> getCommonFriends(@PathVariable Long userId, @PathVariable Long otherUserId) {
         log.info("Запрос на получение общего списка друзей пользователей с id {} и {}", userId, otherUserId);
-        return friendshipService.getCommonFriendsInDb(userId, otherUserId);
+        return friendshipService.getCommonFriends(userId, otherUserId);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
         log.info("Добавление друга: пользователь {} -> друг {}", id, friendId);
-        friendshipService.addFriendInDb(id, friendId);
+        friendshipService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{userId}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeFriend(@PathVariable Long userId, @PathVariable Long friendId) {
         log.info("Удаление друга: пользователь {} -> друг {}", userId, friendId);
-        friendshipService.deleteFriendInDb(userId, friendId);
+        friendshipService.removeFriend(userId, friendId);
     }
 }
