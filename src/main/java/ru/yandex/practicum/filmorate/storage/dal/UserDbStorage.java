@@ -49,9 +49,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
                 SELECT *
                 FROM users
                 WHERE id IN (%s)
-                """.formatted(
-                String.join(",", Collections.nCopies(ids.size(), "?"))
-        );
+                """.formatted(String.join(",", Collections.nCopies(ids.size(), "?")));
 
         return jdbc.query(FIND_BY_ID_LIST_QUERY, rowMapper, ids.toArray());
     }
@@ -69,13 +67,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public User addUser(User user) {
         try {
-            long id = insert(
-                    INSERT_QUERY,
-                    user.getEmail(),
-                    user.getLogin(),
-                    user.getName(),
-                    user.getBirthday()
-            );
+            long id = insert(INSERT_QUERY, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
             user.setId(id);
             return user;
         } catch (DuplicateKeyException e) {
@@ -86,14 +78,7 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
     @Override
     public User updateUser(User user) {
         try {
-            update(
-                    UPDATE_QUERY,
-                    user.getEmail(),
-                    user.getLogin(),
-                    user.getName(),
-                    user.getBirthday(),
-                    user.getId()
-            );
+            update(UPDATE_QUERY, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
             return user;
         } catch (DuplicateKeyException e) {
             throw new DuplicatedDataException("Данный Login или Email уже используются");

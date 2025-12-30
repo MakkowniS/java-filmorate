@@ -133,8 +133,9 @@ public class FilmService {
             throw new IncorrectParameterException("count должен быть > 0");
         }
     }
+
     private void validateUserExists(Long userId) {
-        if (!userStorage.isUserExistsById(userId)){
+        if (!userStorage.isUserExistsById(userId)) {
             throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
     }

@@ -82,16 +82,46 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
     @Override
     public List<Film> getFilms() {
         List<Film> films = findMany(FIND_ALL_QUERY);
-        films.forEach(this::loadGenres);
+
+        if (films.isEmpty()) {
+            return films;
+        }
+
+        List<Long> filmIds = films.stream()
+                .map(Film::getId)
+                .toList();
+
+        Map<Long, Set<Genre>> genresByFilmId = loadGenresForFilms(filmIds);
+
+        films.forEach(film ->
+                film.setGenres(
+                        genresByFilmId.getOrDefault(
+                                film.getId(),
+                                Set.of()
+                        )
+                )
+        );
+
         return films;
     }
 
     @Override
     public Optional<Film> getFilmById(Long id) {
         Optional<Film> film = findOne(FIND_BY_ID_QUERY, id);
-        film.ifPresent(this::loadGenres);
+
+        if (film.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Загружаем жанры
+        Map<Long, Set<Genre>> genresMap = loadGenresForFilms(List.of(id));
+        film.get().setGenres(
+                genresMap.getOrDefault(id, Set.of())
+        );
+
         return film;
     }
+
 
     @Override
     public List<Film> getFilmsByIds(List<Long> ids) {
@@ -143,15 +173,32 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
         jdbc.update("DELETE FROM film_genres WHERE film_id = ?", filmId);
     }
 
-    private void loadGenres(Film film) {
-        String query = """
-                SELECT g.id, g.name
-                FROM genres g
-                JOIN film_genres fg ON g.id = fg.genre_id
-                WHERE fg.film_id = ?
-                """;
+    private Map<Long, Set<Genre>> loadGenresForFilms(List<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Map.of();
+        }
 
-        List<Genre> genres = jdbc.query(query, genreRowMapper, film.getId());
-        film.setGenres(new HashSet<>(genres));
+        String query = """
+                SELECT fg.film_id,
+                       g.id,
+                       g.name
+                FROM film_genres fg
+                JOIN genres g ON fg.genre_id = g.id
+                WHERE fg.film_id IN (%s)
+                """.formatted(
+                String.join(",", Collections.nCopies(filmIds.size(), "?"))
+        );
+
+        return jdbc.query(query, rs -> {
+            Map<Long, Set<Genre>> map = new HashMap<>();
+
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                Genre genre = genreRowMapper.mapRow(rs, rs.getRow());
+                map.computeIfAbsent(filmId, k -> new LinkedHashSet<>()).add(genre);
+            }
+
+            return map;
+        }, filmIds.toArray());
     }
 }

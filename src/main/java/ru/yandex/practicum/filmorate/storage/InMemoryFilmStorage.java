@@ -26,10 +26,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getFilmsByIds(List<Long> ids) {
-        return ids.stream()
-                .map(films::get)
-                .filter(Objects::nonNull)
-                .toList();
+        return ids.stream().map(films::get).filter(Objects::nonNull).toList();
     }
 
     @Override
@@ -91,10 +88,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     private Long getNextId() {
-        long currentId = films.keySet().stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
+        long currentId = films.keySet().stream().mapToLong(id -> id).max().orElse(0);
         return ++currentId;
     }
 }

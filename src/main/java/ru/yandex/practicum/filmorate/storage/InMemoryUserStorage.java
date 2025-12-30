@@ -28,26 +28,17 @@ public class InMemoryUserStorage implements UserStorage {
             return List.of();
         }
 
-        return ids.stream()
-                .map(users::get)
-                .filter(Objects::nonNull)
-                .toList();
+        return ids.stream().map(users::get).filter(Objects::nonNull).toList();
     }
 
     @Override
     public Optional<User> getUserByEmail(String email) {
-        return Optional.ofNullable(users.values().stream()
-                .filter(u -> u.getEmail().equals(email))
-                .findFirst()
-                .orElse(null));
+        return Optional.ofNullable(users.values().stream().filter(u -> u.getEmail().equals(email)).findFirst().orElse(null));
     }
 
     @Override
     public Optional<User> getUserByLogin(String login) {
-        return Optional.ofNullable(users.values().stream()
-                .filter(user -> user.getLogin().equals(login))
-                .findFirst()
-                .orElse(null));
+        return Optional.ofNullable(users.values().stream().filter(user -> user.getLogin().equals(login)).findFirst().orElse(null));
     }
 
     @Override
@@ -77,10 +68,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     private Long getNextId() {
-        long currentId = users.keySet().stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
+        long currentId = users.keySet().stream().mapToLong(id -> id).max().orElse(0);
         return ++currentId;
     }
 
