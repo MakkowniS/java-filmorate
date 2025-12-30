@@ -4,9 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -20,8 +18,27 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User getUser(Long userId) {
-        return users.get(userId);
+    public Optional<User> getUserById(Long userId) {
+        return Optional.ofNullable(users.get(userId));
+    }
+
+    @Override
+    public List<User> getUsersByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+
+        return ids.stream().map(users::get).filter(Objects::nonNull).toList();
+    }
+
+    @Override
+    public Optional<User> getUserByEmail(String email) {
+        return Optional.ofNullable(users.values().stream().filter(u -> u.getEmail().equals(email)).findFirst().orElse(null));
+    }
+
+    @Override
+    public Optional<User> getUserByLogin(String login) {
+        return Optional.ofNullable(users.values().stream().filter(user -> user.getLogin().equals(login)).findFirst().orElse(null));
     }
 
     @Override
@@ -45,11 +62,13 @@ public class InMemoryUserStorage implements UserStorage {
         users.remove(id);
     }
 
+    @Override
+    public boolean isUserExistsById(Long userId) {
+        return users.containsKey(userId);
+    }
+
     private Long getNextId() {
-        long currentId = users.keySet().stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
+        long currentId = users.keySet().stream().mapToLong(id -> id).max().orElse(0);
         return ++currentId;
     }
 

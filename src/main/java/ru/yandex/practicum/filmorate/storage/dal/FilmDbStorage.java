@@ -1,0 +1,230 @@
+package ru.yandex.practicum.filmorate.storage.dal;
+
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.dal.mappers.GenreRowMapper;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@Repository
+@Primary
+public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
+
+    private final GenreRowMapper genreRowMapper;
+
+    private static final String FIND_ALL_QUERY = """
+            SELECT
+                f.id,
+                f.name,
+                f.description,
+                f.release_date,
+                f.duration,
+                m.id AS mpa_id,
+                m.rating AS mpa_name
+            FROM films f
+            LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
+            """;
+
+    private static final String FIND_BY_ID_QUERY = FIND_ALL_QUERY + " WHERE f.id = ?";
+
+    private static final String INSERT_FILM_QUERY = "INSERT INTO films (name, description, release_date, " +
+            "duration, mpa_rating) VALUES (?, ?, ?, ?, ?)";
+
+    private static final String UPDATE_FILM_QUERY = "UPDATE films SET name = ?, description = ?, release_date = ?," +
+            " duration = ?, mpa_rating = ? WHERE id = ?";
+
+    private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
+
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, RowMapper<Film> rowMapper, GenreRowMapper genreRowMapper) {
+        super(jdbcTemplate, rowMapper);
+        this.genreRowMapper = genreRowMapper;
+    }
+
+    @Override
+    public Film createFilm(Film film) {
+        long id = insert(
+                INSERT_FILM_QUERY,
+                film.getName(),
+                film.getDescription(),
+                film.getReleaseDate(),
+                film.getDuration(),
+                film.getMpa() != null ? film.getMpa().getId() : null
+        );
+
+        film.setId(id);
+        saveGenres(film);
+        return film;
+    }
+
+    @Override
+    public Film updateFilm(Film film) {
+        update(
+                UPDATE_FILM_QUERY,
+                film.getName(),
+                film.getDescription(),
+                film.getReleaseDate(),
+                film.getDuration(),
+                film.getMpa() != null ? film.getMpa().getId() : null,
+                film.getId()
+        );
+        deleteGenres(film.getId());
+        saveGenres(film);
+        return film;
+    }
+
+    @Override
+    public List<Film> getFilms() {
+        List<Film> films = findMany(FIND_ALL_QUERY);
+
+        if (films.isEmpty()) {
+            return films;
+        }
+
+        List<Long> filmIds = films.stream()
+                .map(Film::getId)
+                .toList();
+
+        Map<Long, Set<Genre>> genresByFilmId = loadGenresForFilms(filmIds);
+
+        films.forEach(film ->
+                film.setGenres(
+                        genresByFilmId.getOrDefault(
+                                film.getId(),
+                                Set.of()
+                        )
+                )
+        );
+
+        return films;
+    }
+
+    @Override
+    public Optional<Film> getFilmById(Long id) {
+        Optional<Film> film = findOne(FIND_BY_ID_QUERY, id);
+
+        if (film.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Загружаем жанры
+        Map<Long, Set<Genre>> genresMap = loadGenresForFilms(List.of(id));
+        film.get().setGenres(
+                genresMap.getOrDefault(id, Set.of())
+        );
+
+        return film;
+    }
+
+
+    @Override
+    public List<Film> getFilmsByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        String query = """
+                SELECT *
+                FROM films
+                WHERE id IN (%s)
+                """.formatted(
+                String.join(",", Collections.nCopies(ids.size(), "?"))
+        );
+
+        List<Film> films = jdbc.query(query, rowMapper, ids.toArray()); // Получаем список фильмов
+
+        Map<Long, Film> filmMap = films.stream()
+                .collect(Collectors.toMap(Film::getId, Function.identity())); // Собираем фильмы в Map<Id, Film>
+
+        return ids.stream() // Проходим по id и собираем film в нужном для топа порядке
+                .map(filmMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    @Override
+    public void deleteFilm(Long id) {
+        deleteGenres(id);
+        delete(DELETE_FILM_QUERY, id);
+    }
+
+    @Override
+    public List<Film> getPopular(int count) {
+        String query = """
+                SELECT
+                f.id,
+                f.name,
+                f.description,
+                f.release_date,
+                f.duration,
+                m.id AS mpa_id,
+                m.rating AS mpa_name
+                FROM films f
+                    LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
+                ORDER BY (
+                    SELECT COUNT(*)
+                    FROM film_likes fl
+                    WHERE fl.film_id = f.id
+                    )
+                DESC, f.id ASC
+                LIMIT ?
+                """;
+
+        return jdbc.query(query, rowMapper, count);
+    }
+
+    // ===== Genres =====
+
+    private void saveGenres(Film film) {
+        if (film.getId() == null || film.getGenres().isEmpty()) {
+            return;
+        }
+
+        String query = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+
+        jdbc.batchUpdate(query, film.getGenres(), film.getGenres().size(), (ps, genre) -> {
+            ps.setLong(1, film.getId());
+            ps.setInt(2, genre.getId());
+        });
+    }
+
+    private void deleteGenres(Long filmId) {
+        jdbc.update("DELETE FROM film_genres WHERE film_id = ?", filmId);
+    }
+
+    private Map<Long, Set<Genre>> loadGenresForFilms(List<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Map.of();
+        }
+
+        String query = """
+                SELECT fg.film_id,
+                       g.id,
+                       g.name
+                FROM film_genres fg
+                JOIN genres g ON fg.genre_id = g.id
+                WHERE fg.film_id IN (%s)
+                """.formatted(
+                String.join(",", Collections.nCopies(filmIds.size(), "?"))
+        );
+
+        return jdbc.query(query, rs -> {
+            Map<Long, Set<Genre>> map = new HashMap<>();
+            GenreRowMapper genreRowMapper = new GenreRowMapper();
+
+            while (rs.next()) {
+                long filmId = rs.getLong("film_id");
+                Genre genre = genreRowMapper.mapRow(rs, rs.getRow());
+                map.computeIfAbsent(filmId, k -> new LinkedHashSet<>()).add(genre);
+            }
+
+            return map;
+        }, filmIds.toArray());
+    }
+}
