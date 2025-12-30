@@ -45,13 +45,13 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
             return List.of();
         }
 
-        String FIND_BY_ID_LIST_QUERY = """
+        String query = """
                 SELECT *
                 FROM users
                 WHERE id IN (%s)
                 """.formatted(String.join(",", Collections.nCopies(ids.size(), "?")));
 
-        return jdbc.query(FIND_BY_ID_LIST_QUERY, rowMapper, ids.toArray());
+        return jdbc.query(query, rowMapper, ids.toArray());
     }
 
     @Override
@@ -92,8 +92,8 @@ public class UserDbStorage extends BaseDbStorage<User> implements UserStorage {
 
     @Override
     public boolean isUserExistsById(Long userId) {
-        String IS_USER_EXISTS_QUERY = "SELECT EXISTS (SELECT 1 FROM users WHERE id = ?)";
-        return jdbc.queryForObject(IS_USER_EXISTS_QUERY, Boolean.class, userId);
+        String query = "SELECT EXISTS (SELECT 1 FROM users WHERE id = ?)";
+        return jdbc.queryForObject(query, Boolean.class, userId);
     }
 
 

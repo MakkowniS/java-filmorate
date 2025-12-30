@@ -34,5 +34,11 @@ public class InMemoryFilmLikesStorage implements FilmLikesStorage {
     public List<Long> getLikedUserIds(long filmId) {
         return new ArrayList<>(filmLikes.getOrDefault(filmId, Collections.emptySet()));
     }
+
+    @Override
+    public int getLikesCount(long filmId) {
+        return filmLikes.getOrDefault(filmId, Collections.emptySet()).size();
+    }
+
 }
 

@@ -129,11 +129,11 @@ class FilmDbStorageTest {
         Film film2 = filmDbStorage.createFilm(createFilm("Film 2"));
         Film film3 = filmDbStorage.createFilm(createFilm("Film 3"));
 
-        // Добавляем лайки
+        // Добавляем лайки (через filmLikesStorage)
         filmLikesDbStorage.addLike(film1.getId(), 1L); // 1 лайк
         filmLikesDbStorage.addLike(film1.getId(), 2L); // 2 лайка
         filmLikesDbStorage.addLike(film2.getId(), 1L); // 1 лайк
-        // film3 - 0 лайков
+        // film3 не лайкаем (0 лайков)
 
         // Получаем топ-3 фильмов
         List<Film> popularFilms = filmDbStorage.getPopular(3);
@@ -144,6 +144,7 @@ class FilmDbStorageTest {
                 .extracting(Film::getId)
                 .containsExactly(film1.getId(), film2.getId(), film3.getId());
     }
+
 
     @Test
     void shouldUpdateFilm() {

@@ -129,7 +129,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
             return List.of();
         }
 
-        String FIND_BY_ID_LIST_QUERY = """
+        String query = """
                 SELECT *
                 FROM films
                 WHERE id IN (%s)
@@ -137,7 +137,7 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 String.join(",", Collections.nCopies(ids.size(), "?"))
         );
 
-        List<Film> films = jdbc.query(FIND_BY_ID_LIST_QUERY, rowMapper, ids.toArray()); // Получаем список фильмов
+        List<Film> films = jdbc.query(query, rowMapper, ids.toArray()); // Получаем список фильмов
 
         Map<Long, Film> filmMap = films.stream()
                 .collect(Collectors.toMap(Film::getId, Function.identity())); // Собираем фильмы в Map<Id, Film>
@@ -166,12 +166,13 @@ public class FilmDbStorage extends BaseDbStorage<Film> implements FilmStorage {
                 m.id AS mpa_id,
                 m.rating AS mpa_name
                 FROM films f
-                LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
+                    LEFT JOIN mpa_ratings m ON f.mpa_rating = m.id
                 ORDER BY (
                     SELECT COUNT(*)
                     FROM film_likes fl
                     WHERE fl.film_id = f.id
-                ) DESC, f.id ASC
+                    )
+                DESC, f.id ASC
                 LIMIT ?
                 """;
 

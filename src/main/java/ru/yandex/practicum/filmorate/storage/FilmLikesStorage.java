@@ -9,4 +9,6 @@ public interface FilmLikesStorage {
 
     List<Long> getLikedUserIds(long filmId);
 
+    int getLikesCount(long filmId);
+
 }
